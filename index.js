@@ -56,7 +56,8 @@ app.listen(port, () => {
         console.log(`Ngrok URL: ${url.url()}`);
         let TERMUX_ADDRESS = url.url();
 
-        sendEmail('[Node-server] Starting', 'Ngrok URL: ' + url.url() + '\n' + '服务器已启动，等待GitHub Action进行重定向');
+        sendPushMessage('Node Server Starting...', 'Ngrok URL: ' + url.url() + '\n' + '服务器已启动，等待GitHub Actions进行重定向');
+        sendEmail('[Node-server] Starting...', 'Ngrok URL: ' + url.url() + '\n' + '服务器已启动，等待GitHub Actions进行重定向');
 
         const url1 = `https://api.github.com/repos/${GITHUB_REPO}/dispatches`;
         const headers = {
@@ -247,7 +248,7 @@ async function sendEmail(title, content) {
         });
         // 设置邮件内容（谁发送的、发送给谁、主题、正文）
         let mailOptions = {
-            from: '710297266@qq.com', // 发送者邮箱
+            from: '"Node Server Bot" <noreply@qq.com>', // 发送者邮箱
             to: '710297266@qq.com', // 接收者邮箱，多个邮箱地址用逗号隔开
             subject: title, // 主题
             text: content, // 正文
