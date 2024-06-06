@@ -110,8 +110,8 @@ app.post('/webhook-result', async (req, res) => {
 
     const batteryInfo = await getBatteryInfo();
     let batteryNum = batteryInfo.percentage;
-    sendPushMessage('Node Server已重定向到GitHub.io / ' + batteryNum, '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动，可通过GitHub Page进入');
-    sendEmail('Node Server已重定向到GitHub.io', '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动，可通过GitHub Page进入');
+    sendPushMessage('Node Server redirected to GitHub.io / ' + batteryNum, '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动，可通过GitHub Page进入');
+    sendEmail('Node Server redirected to GitHub.io', '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动，可通过GitHub Page进入');
     setInterval(async () => {
         const batteryInfo = await getBatteryInfo();
         let batteryNum = batteryInfo.percentage;
