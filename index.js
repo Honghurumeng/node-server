@@ -12,6 +12,7 @@ const nodemailer = require('nodemailer');
 
 // Create an instance of Express
 const app = express();
+app.use(express.json());
 
 // Create webserver
 // http.createServer((req, res) => {
@@ -36,6 +37,10 @@ const app = express();
 
 // Start the server
 const port = process.env.PORT || 3000;
+
+const GITHUB_REPO = 'Honghurumeng/Honghurumeng.github.io';
+const GITHUB_TOKEN = process.env.GITHUB_IO_ADDRESS;
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
     // console.log(`http://${ip}:${port}`);
@@ -49,17 +54,44 @@ app.listen(port, () => {
         // 启动一个 HTTP 隧道，将本地的 3000 端口映射到公网
         const url = await ngrok.connect(3000);
         console.log(`Ngrok URL: ${url.url()}`);
-        const batteryInfo = await getBatteryInfo();
-        let batteryNum = batteryInfo.percentage;
-        sendPushMessage('Node Server booted / ' + batteryNum, 'Ngrok URL: ' + url.url() + '\n'
-            + '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动');
-        sendEmail('Ngrok URL: ' + url.url() + '\n' + '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动');
-        setInterval(async () => {
-            const batteryInfo = await getBatteryInfo();
-            let batteryNum = batteryInfo.percentage;
-            sendPushMessage('当前系统电量：' + batteryNum, JSON.stringify(batteryInfo));
-            // sendEmail('当前系统电量：' + batteryNum);
-        }, 1000 * 60 * 30);
+        let TERMUX_ADDRESS = url.url();
+
+        sendEmail('[Node-server] Starting', 'Ngrok URL: ' + url.url() + '\n' + '服务器已启动，等待GitHub Action进行重定向');
+
+        const url1 = `https://api.github.com/repos/${GITHUB_REPO}/dispatches`;
+        const headers = {
+            'Authorization': `token ${GITHUB_TOKEN}`,
+            'Accept': 'application/vnd.github.v3+json'
+        };
+        const data = {
+            'event_type': 'update_address',
+            'client_payload': {
+                'address': TERMUX_ADDRESS,
+                'callback_url': `${TERMUX_ADDRESS}/webhook-result`
+            }
+        };
+
+        try {
+            await axios.post(url1, data, { headers });
+            console.log('Webhook triggered successfully');
+            // res.status(204).send('Webhook triggered successfully');
+        } catch (error) {
+            console.error('Failed to trigger webhook', error);
+            // res.status(500).send('Failed to trigger webhook');
+        }
+
+
+        // const batteryInfo = await getBatteryInfo();
+        // let batteryNum = batteryInfo.percentage;
+        // sendPushMessage('Node Server booted / ' + batteryNum, 'Ngrok URL: ' + url.url() + '\n'
+        //     + '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动');
+        // sendEmail('Ngrok URL: ' + url.url() + '\n' + '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动');
+        // setInterval(async () => {
+        //     const batteryInfo = await getBatteryInfo();
+        //     let batteryNum = batteryInfo.percentage;
+        //     sendPushMessage('当前系统电量：' + batteryNum, JSON.stringify(batteryInfo));
+        //     // sendEmail('当前系统电量：' + batteryNum);
+        // }, 1000 * 60 * 30);
     } catch (err) {
         console.error('Error while connecting Ngrok', err);
     }
@@ -72,8 +104,24 @@ app.listen(port, () => {
 //     console.error('Error executing ip command:', err);
 // }
 
+app.post('/webhook-result', async (req, res) => {
+    console.log('GitHub Actions completed:', req.body);
+
+    const batteryInfo = await getBatteryInfo();
+    let batteryNum = batteryInfo.percentage;
+    sendPushMessage('Node Server Started / ' + batteryNum, '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动，可通过GitHub Page进入');
+    sendEmail('[Node-server] Started', '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动，可通过GitHub Page进入');
+    setInterval(async () => {
+        const batteryInfo = await getBatteryInfo();
+        let batteryNum = batteryInfo.percentage;
+        sendPushMessage('当前系统电量：' + batteryNum, JSON.stringify(batteryInfo));
+        // sendEmail('当前系统电量：' + batteryNum);
+    }, 1000 * 60 * 30);
+
+    res.status(200).send('Result received');
+});
+
 // 解析请求体中的JSON数据
-app.use(express.json());
 // 处理表单提交的数据
 app.use(express.urlencoded({ extended: true }));
 // 托管静态资源，index设置为false表示禁用此行为，即如果请求的是一个目录，服务器不会自动发送index.html，而是继续匹配后续的路由
@@ -185,7 +233,7 @@ async function sendPushMessage(title, content) {
     }
 }
 
-async function sendEmail(content) {
+async function sendEmail(title, content) {
     try {
         // 创建一个 SMTP 客户端配置
         let transporter = nodemailer.createTransport({
@@ -201,7 +249,7 @@ async function sendEmail(content) {
         let mailOptions = {
             from: '710297266@qq.com', // 发送者邮箱
             to: '710297266@qq.com', // 接收者邮箱，多个邮箱地址用逗号隔开
-            subject: '[Node-server] Booted', // 主题
+            subject: title, // 主题
             text: content, // 正文
             html: '' // HTML 正文
         };
