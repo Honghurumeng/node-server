@@ -1,0 +1,15 @@
+{
+    "background": "",
+    "objects": [
+        {
+            "model": "./assets/Spatial1.gltf",
+            "position": { "x": 0, "y": 0, "z": 0 },
+            "rotation": { "x": 0, "y": 0, "z": 0 }
+        },
+        {
+            "model": "./assets/node_3d.gltf",
+            "position": { "x": 0, "y": 0, "z": 0 },
+            "rotation": { "x": 0, "y": 0, "z": 0 }
+        }
+    ]
+}

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>幸存者游戏</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.0/dist/phaser.min.js"></script>
+    <script src="./autolog.js"></script>
+</head>
+
+<body>
+    <script>
+        function initializeGame() {
+            const config = {
+                type: Phaser.AUTO,
+                width: 800,
+                height: 600,
+                physics: {
+                    default: 'arcade',
+                    arcade: {
+                        gravity: { y: 0 },
+                        debug: false
+                    }
+                },
+                scene: [StartScene, GameScene]
+            };
+
+            const game = new Phaser.Game(config);
+        }
+
+        let player, cursors, monsters, bullets,
+            lastDirection = { x: 0, y: 0 },
+            fireRate = 200,
+            lastFired = 0,
+            score = 0,
+            scoreText,
+            hpText,
+            expPoints = 0,
+            level = 1,
+            upgradePoints = 0,
+            monsterTypes = 1,
+            monsterSpeed = 50,
+            difficultyTimer = 0,
+            playerHp = 100,
+            maxPlayerHp = 100,
+            bulletRange = 300,
+            attackPower = 20,
+            playerSpeed = 200,
+            createMonsters = false;
+
+        class StartScene extends Phaser.Scene {
+            constructor() {
+                super({ key: 'StartScene' });
+            }
+
+            preload() {
+                this.load.image('startButton', 'path/to/startbutton/image.png');
+            }
+
+            create() {
+                this.add.text(400, 200, '幸存者游戏', { fontSize: '32px', fill: '#fff' }).setOrigin(0.5);
+                playerHp = maxPlayerHp;
+                const startButton = this.add.image(400, 300, 'startButton').setInteractive();
+                startButton.on('pointerdown', () => this.scene.start('GameScene'));
+            }
+        }
+
+        class GameScene extends Phaser.Scene {
+            constructor() {
+                super({ key: 'GameScene' });
+            }
+
+            preload() {
+                // 这里载入你的游戏资源，例如图片
+                this.load.image('player', 'path/to/player/image.png');
+                this.load.image('monster', 'path/to/monster/image.png');
+                this.load.image('bullet', 'path/to/bullet/image.png');
+            }
+
+            create() {
+                player = this.physics.add.sprite(400, 300, 'player');
+                player.setCollideWorldBounds(true);
+
+                monsters = this.physics.add.group();
+                bullets = this.physics.add.group();
+
+                cursors = this.input.keyboard.createCursorKeys();
+                scoreText = this.add.text(16, 16, '分数: ' + score, { fontSize: '32px', fill: '#fff' });
+                hpText = this.add.text(16, 50, 'HP: ' + playerHp, { fontSize: '32px', fill: '#fff' });
+
+                spawnMonsters(this);
+
+                // this.physics.add.overlap(player, monsters, hitPlayer, null, this);
+                // this.physics.add.collider(bullets, monsters, hitMonster, null, this);
+
+                // this.time.addEvent({
+                //     delay: 2000,
+                //     callback: increaseDifficulty,
+                //     callbackScope: this,
+                //     loop: true
+                // });
+            }
+
+            update(time, delta) {
+                playerMove();
+
+                if (time > lastFired && (cursors.up.isDown || cursors.down.isDown || cursors.left.isDown || cursors.right.isDown)) {
+                    shootBullet(this);
+                    lastFired = time + fireRate;
+                }
+
+                // if (difficultyTimer > 20000) {
+                //     spawnMonsters(this);
+                //     difficultyTimer = 0;
+                // } else {
+                //     difficultyTimer += delta;
+                // }
+
+                // 检测怪物是否全部死亡
+                if (!monsters.countActive() && !createMonsters) {
+                    createMonsters = true;
+                    autolog.success('下一波怪物即将到来！');
+                    this.time.delayedCall(3000, () => {
+                        spawnMonsters(this);
+                        createMonsters = false;
+                        increaseDifficulty();
+                    });
+                }
+            }
+        }
+
+        function playerMove() {
+            player.setVelocity(0);
+
+            if (cursors.left.isDown) {
+                player.setVelocityX(-playerSpeed);
+                lastDirection.x = -1;
+                lastDirection.y = 0;
+            } else if (cursors.right.isDown) {
+                player.setVelocityX(playerSpeed);
+                lastDirection.x = 1;
+                lastDirection.y = 0;
+            }
+
+            if (cursors.up.isDown) {
+                player.setVelocityY(-playerSpeed);
+                lastDirection.y = -1;
+                lastDirection.x = 0;
+            } else if (cursors.down.isDown) {
+                player.setVelocityY(playerSpeed);
+                lastDirection.y = 1;
+                lastDirection.x = 0;
+            }
+        }
+
+        function shootBullet(scene) {
+            let bullet = bullets.create(player.x, player.y, 'bullet');
+            scene.physics.moveTo(bullet,
+                player.x + lastDirection.x * bulletRange,
+                player.y + lastDirection.y * bulletRange,
+                500);
+            setTimeout(() => bullet.destroy(), 500);
+        }
+
+        function spawnMonsters(scene) {
+            // 生成3个怪物
+            for (let i = 0; i < 3; i++) {
+                let x = Phaser.Math.Between(0, 800);
+                let y = Phaser.Math.Between(0, 600);
+
+                let distance = Phaser.Math.Distance.Between(player.x, player.y, x, y);
+
+                while (distance < 200) {
+                    x = Phaser.Math.Between(0, 800);
+                    y = Phaser.Math.Between(0, 600);
+                    distance = Phaser.Math.Distance.Between(player.x, player.y, x, y);
+                }
+
+                let monster = scene.physics.add.sprite(x, y, 'monster');
+                monsters.add(monster);
+                monster.hp = monsterTypes * 10;
+
+                scene.physics.moveToObject(monster, player, monsterSpeed);
+            }
+            scene.physics.add.overlap(player, monsters, hitPlayer, null, this);
+            scene.physics.add.overlap(bullets, monsters, hitMonster, null, this);
+
+        }
+
+        function hitMonster(bullet, monster) {
+            bullet.destroy();
+
+            monster.hp -= attackPower;
+            if (monster.hp <= 0) {
+                score += 10;
+                expPoints += 5;
+                scoreText.setText('分数: ' + score);
+
+                if (expPoints >= expCurve(level)) {
+                    expPoints = 0;
+                    level++;
+                    upgradePoints++;
+                    autolog.success('升级了！可用升级点数: ' + upgradePoints);
+                }
+
+                monster.destroy();
+                autolog.success('击败了一个怪物！');
+            }
+        }
+
+        function hitPlayer(player, monster) {
+            playerHp -= 10;
+            hpText.setText('HP: ' + playerHp);
+            monster.destroy();
+
+            if (playerHp <= 0) {
+                autolog.error('游戏结束！点击确认返回开始界面');
+                this.scene.start('StartScene');
+            }
+        }
+
+        function increaseDifficulty() {
+            if (monsterTypes < 5) {
+                monsterTypes++;
+            }
+
+            monsterSpeed += 5;
+        }
+
+        function expCurve(level) {
+            return Math.pow(level, 2) * 50;
+        }
+
+        window.onload = initializeGame;
+    </script>
+</body>
+
+</html>

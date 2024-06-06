@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>响应式设计示例</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      body {
+        background-color: #f0f8ff;
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+      }
+      .card {
+        border: 2px solid #ffd700;
+      }
+      .card-header {
+        font-weight: bold;
+        color: #ff4500;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-3">
+      <div class="row">
+        <div class="col-12">
+          <h1 id="mapName" class="text-center mb-4" style="color: #ff69b4; font-style: italic;">地图名称</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div id="projectList" class="col-12">
+          <!-- 动态生成的项目进度列表会插入到这里 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.min.js"></script>
+    <script>
+      $(document).ready(function() {
+        // 模拟JSON数据
+        const data = {
+          "mapName": "冒险地图",
+          "projects": [
+            {"name": "项目一", "level": "等级一", "progress": 70},
+            {"name": "项目二", "level": "等级二", "progress": 45},
+            {"name": "项目三", "level": "等级三", "progress": 30}
+          ]
+        };
+        
+        // 设置地图名称
+        $('#mapName').text(data.mapName);
+
+        // 生成项目进度列表
+        data.projects.forEach(project => {
+          $('#projectList').append(`
+            <div class="card mb-3">
+              <div class="card-header">
+                <span>${project.name}</span>
+                <span class="float-end">${project.level}</span>
+              </div>
+              <div class="card-body">
+                <div class="progress">
+                  <div class="progress-bar" role="progressbar" style="width: ${project.progress}%" aria-valuenow="${project.progress}" aria-valuemin="0" aria-valuemax="100">${project.progress}%</div>
+                </div>
+              </div>
+            </div>
+          `);
+        });
+      });
+    </script>
+  </body>
+</html>

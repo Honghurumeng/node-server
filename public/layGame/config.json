@@ -1,0 +1,8 @@
+{
+    "mapName": "冒险地图",
+    "projects": [
+      {"name": "项目一", "level": "等级一", "progress": 70},
+      {"name": "项目二", "level": "等级二", "progress": 45},
+      {"name": "项目三", "level": "等级三", "progress": 30}
+    ]
+  }
