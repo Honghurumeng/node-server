@@ -221,7 +221,7 @@ async function sendPushMessage(title, content) {
             content: content
         };
 
-        const response = await axios.get(url, { params, timeout: 5000 });
+        const response = await axios.get(url, { params, timeout: 10000 });
 
         if (response.data.code === 200 && response.data.message === "success") {
             return { success: true, message: "发送成功" };
