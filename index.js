@@ -56,8 +56,8 @@ app.listen(port, () => {
         console.log(`Ngrok URL: ${url.url()}`);
         let TERMUX_ADDRESS = url.url();
 
-        sendPushMessage('Node Server Starting...', 'Ngrok URL: ' + url.url() + '\n' + '服务器已启动，等待GitHub Actions进行重定向');
-        sendEmail('[Node-server] Starting...', 'Ngrok URL: ' + url.url() + '\n' + '服务器已启动，等待GitHub Actions进行重定向');
+        sendPushMessage('Node Server Started', 'Ngrok URL: ' + url.url() + '\n' + '服务器已启动，等待GitHub Actions进行重定向');
+        // sendEmail('[Node-server] Starting...', 'Ngrok URL: ' + url.url() + '\n' + '服务器已启动，等待GitHub Actions进行重定向');
 
         const url1 = `https://api.github.com/repos/${GITHUB_REPO}/dispatches`;
         const headers = {
@@ -110,12 +110,12 @@ app.post('/webhook-result', async (req, res) => {
 
     const batteryInfo = await getBatteryInfo();
     let batteryNum = batteryInfo.percentage;
-    sendPushMessage('Node Server Started / ' + batteryNum, '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动，可通过GitHub Page进入');
-    sendEmail('[Node-server] Started', '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动，可通过GitHub Page进入');
+    sendPushMessage('Node Server已重定向到GitHub.io / ' + batteryNum, '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动，可通过GitHub Page进入');
+    sendEmail('Node Server已重定向到GitHub.io', '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动，可通过GitHub Page进入');
     setInterval(async () => {
         const batteryInfo = await getBatteryInfo();
         let batteryNum = batteryInfo.percentage;
-        sendPushMessage('当前系统电量：' + batteryNum, JSON.stringify(batteryInfo));
+        sendPushMessage('Battery Percentage ' + batteryNum, JSON.stringify(batteryInfo));
         // sendEmail('当前系统电量：' + batteryNum);
     }, 1000 * 60 * 30);
 
