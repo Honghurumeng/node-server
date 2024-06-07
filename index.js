@@ -9,10 +9,18 @@ const { execSync } = require('child_process');
 // const http = require('http');
 const ngrok = require('@ngrok/ngrok');
 const nodemailer = require('nodemailer');
+const session = require('express-session');
 
 // Create an instance of Express
 const app = express();
 app.use(express.json());
+
+app.use(session({
+    secret: 'honghurumeng',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 10 * 60 * 1000, secure: false } // 如果你的应用在 HTTPS 环境下运行，应该将 secure 设置为 true
+}));
 
 // Create webserver
 // http.createServer((req, res) => {
@@ -80,7 +88,6 @@ app.listen(port, () => {
             console.error('Failed to trigger webhook', error);
             // res.status(500).send('Failed to trigger webhook');
         }
-
 
         // const batteryInfo = await getBatteryInfo();
         // let batteryNum = batteryInfo.percentage;
@@ -152,8 +159,29 @@ function formatTime(time) {
 }
 
 app.get('/', (req, res) => {
-    let html = fs.readFileSync(path.join(__dirname, 'public/index.html'), 'utf8');
+    let html = fs.readFileSync(path.join(__dirname, 'public/login.html'), 'utf8');
     res.send(html);
+});
+
+app.post('/login', (req, res) => {
+    const password = req.body.password;
+    if (password === '1998') {
+        req.session.user = {
+            username: 'hhrm'
+        };
+        res.json({ success: true });
+    } else {
+        res.json({ success: false, message: '密码错误'});
+    }
+});
+
+app.get('/index', (req, res) => {
+    if (req.session.user) {
+        let html = fs.readFileSync(path.join(__dirname, 'public/index.html'), 'utf8');
+        res.send(html);
+    } else {
+        res.redirect('/');
+    }
 });
 
 app.get('/blog', (req, res) => {
@@ -172,7 +200,6 @@ app.get('/threejs/utils/BufferGeometryUtils.js', (req, res) => {
     res.setHeader('Content-Type', 'application/javascript');
     res.send(js);
 });
-
 
 app.get('/api/getAppNames', (req, res) => {
     const directoryPath = path.join(__dirname, 'app');
@@ -295,91 +322,91 @@ app.post('/send', (req, res) => {
 });
 
 
-let browserHuya = null;
-let allResults = [];
-let nextResults = [];
-let huyaClose = false;
+// let browserHuya = null;
+// let allResults = [];
+// let nextResults = [];
+// let huyaClose = false;
 
-app.get('/startHuya', async (req, res) => {
-    const homeNum = req.query.homeNum;
-    console.log(homeNum);
-    // Check if homeNum exists and is a number
-    if (!homeNum || isNaN(homeNum)) {
-        res.status(400).send('Invalid homeNum');
-        return;
-    }
+// app.get('/startHuya', async (req, res) => {
+//     const homeNum = req.query.homeNum;
+//     console.log(homeNum);
+//     // Check if homeNum exists and is a number
+//     if (!homeNum || isNaN(homeNum)) {
+//         res.status(400).send('Invalid homeNum');
+//         return;
+//     }
 
-    try {
-        // If there is an existing browser instance, close it
-        if (browserHuya) {
-            await browserHuya.close();
-        }
-        browserHuya = await puppeteer.launch();
-        const page = await browserHuya.newPage();
+//     try {
+//         // If there is an existing browser instance, close it
+//         if (browserHuya) {
+//             await browserHuya.close();
+//         }
+//         browserHuya = await puppeteer.launch();
+//         const page = await browserHuya.newPage();
 
-        await page.goto('https://www.huya.com/' + homeNum);
+//         await page.goto('https://www.huya.com/' + homeNum);
 
-        let previousText = '';
-        res.send('Browser started');
-        // Continuously print the new innerText of #js-barrage-list and #js-barrage-extendList
-        while (true) {
-            const currentText = await page.evaluate(() => {
-                const ul = document.querySelector('#chat-room__list');
-                return ul ? ul.innerText : '';
-            });
+//         let previousText = '';
+//         res.send('Browser started');
+//         // Continuously print the new innerText of #js-barrage-list and #js-barrage-extendList
+//         while (true) {
+//             const currentText = await page.evaluate(() => {
+//                 const ul = document.querySelector('#chat-room__list');
+//                 return ul ? ul.innerText : '';
+//             });
 
-            if (currentText !== previousText) {
-                const newText = currentText.replace(previousText, '');
-                let info = newText.split('\n\n');
+//             if (currentText !== previousText) {
+//                 const newText = currentText.replace(previousText, '');
+//                 let info = newText.split('\n\n');
 
-                for (let i = 0; i < info.length; i++) {
-                    if (info[i].startsWith(':')) {
-                        let msg = info[i - 1] + info[i];
-                        allResults.push(msg);
-                        nextResults.push(msg);
-                    }
-                }
+//                 for (let i = 0; i < info.length; i++) {
+//                     if (info[i].startsWith(':')) {
+//                         let msg = info[i - 1] + info[i];
+//                         allResults.push(msg);
+//                         nextResults.push(msg);
+//                     }
+//                 }
 
-                previousText = currentText;
-            }
+//                 previousText = currentText;
+//             }
 
-            // Wait for a while before the next iteration to reduce CPU usage
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-    } catch (error) {
-        console.error(error);
-        if (!res.headersSent) {
-            res.status(500).send('An error occurred');
-        }
-    }
-});
+//             // Wait for a while before the next iteration to reduce CPU usage
+//             await new Promise(resolve => setTimeout(resolve, 1000));
+//         }
+//     } catch (error) {
+//         console.error(error);
+//         if (!res.headersSent) {
+//             res.status(500).send('An error occurred');
+//         }
+//     }
+// });
 
-app.get('/stopHuya', async (req, res) => {
-    if (!browserHuya) {
-        res.status(400).send('No browser instance');
-        return;
-    }
-    huyaClose = true;
-    try {
-        await browserHuya.close();
-        browserHuya = null;
-        res.send('Browser closed');
-        return;
-    } catch (error) {
-        console.error(error);
-        if (!res.headersSent) {
-            res.status(500).send('An error occurred');
-        }
-    }
-});
+// app.get('/stopHuya', async (req, res) => {
+//     if (!browserHuya) {
+//         res.status(400).send('No browser instance');
+//         return;
+//     }
+//     huyaClose = true;
+//     try {
+//         await browserHuya.close();
+//         browserHuya = null;
+//         res.send('Browser closed');
+//         return;
+//     } catch (error) {
+//         console.error(error);
+//         if (!res.headersSent) {
+//             res.status(500).send('An error occurred');
+//         }
+//     }
+// });
 
-app.get('/pollResults', (req, res) => {
-    if (browserHuya && !huyaClose) {
-        const newResults = nextResults;
-        nextResults = [];
-        res.json(newResults);
-    }
-});
+// app.get('/pollResults', (req, res) => {
+//     if (browserHuya && !huyaClose) {
+//         const newResults = nextResults;
+//         nextResults = [];
+//         res.json(newResults);
+//     }
+// });
 
 // 斗鱼直播
 // (async () => {

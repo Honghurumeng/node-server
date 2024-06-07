@@ -15,6 +15,20 @@
             background-image: url("data:image/svg+xml;utf8,%3Csvg width=%222000%22 height=%221000%22 xmlns=%22http:%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath fill=%22%23e5eaff%22 d=%22M0 0h2000v1000H0z%22%2F%3E%3Cpath d=%22M0 142h0c99.631 3.982 199.263 7.964 308 0s226.581-27.875 354-20c127.419 7.875 264.413 43.536 366 45 101.587 1.464 167.765-31.267 274-34 106.235-2.733 252.525 24.533 381 23 128.475-1.533 239.136-31.867 289-39 49.864-7.133 38.932 8.933 68 25%22 fill=%22none%22 stroke=%22%23173fff%22 stroke-width=%224%22 stroke-linecap=%22round%22%2F%3E%3Cpath d=%22M0 285h0c122.483 16.216 244.966 32.433 359 27 114.034-5.433 219.617-32.515 334-33 114.383-.485 237.564 25.627 338 26 100.436.373 178.127-24.993 271-33 92.873-8.007 200.927 1.344 342 10s315.164 16.616 380 17c64.836.384 20.418-6.808 16-14%22 fill=%22none%22 stroke=%22%237e95ff%22 stroke-width=%224%22 stroke-linecap=%22round%22%2F%3E%3Cpath d=%22M0 428h0c116.4 2.31 232.8 4.618 347 0 114.2-4.618 226.2-16.164 330-13 103.8 3.164 199.402 21.038 317 28 117.598 6.962 257.191 3.01 363 4 105.809.99 177.833 6.92 288 4s258.476-14.692 324-20 48.262-4.154 71-3%22 fill=%22none%22 stroke=%22%2397a9ff%22 stroke-width=%224%22 stroke-linecap=%22round%22%2F%3E%3Cpath d=%22M0 571h0c116.767-1.202 233.534-2.403 352-5 118.466-2.597 238.631-6.588 345-13s198.941-15.243 306-7 228.603 33.56 339 33c110.397-.56 209.645-26.997 338-29s285.816 20.428 344 28c58.184 7.572 17.092.286 16-7%22 fill=%22none%22 stroke=%22%238298ff%22 stroke-width=%224%22 stroke-linecap=%22round%22%2F%3E%3Cpath d=%22M0 714h0c96.753 5.833 193.506 11.666 307 13 113.494 1.334 243.727-1.831 354-2 110.273-.169 200.584 2.66 313-6s246.936-28.806 357-21c110.064 7.806 195.671 43.563 317 43 121.329-.563 278.38-37.447 343-48 64.62-10.553 36.81 5.223 49 21%22 fill=%22none%22 stroke=%22%235572ff%22 stroke-width=%224%22 stroke-linecap=%22round%22%2F%3E%3Cpath d=%22M0 857h0c128.837-12.317 257.674-24.633 357-24 99.326.633 169.14 14.217 276 21 106.86 6.783 250.763 6.765 372 6 121.237-.765 219.806-2.277 321-6 101.194-3.723 205.014-9.656 329-14 123.986-4.344 268.139-7.098 329-4 60.861 3.098 38.43 12.05 56 21%22 fill=%22none%22 stroke=%22%23b5c2ff%22 stroke-width=%224%22 stroke-linecap=%22round%22%2F%3E%3C%2Fsvg%3E");
         }
 
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #3e8e41;
+        }
+
         #download-btns {
             display: flex;
             flex-wrap: wrap;
@@ -49,13 +63,20 @@
             }
 
             button {
-                width: 100%;
+                width: 80%;
                 margin-bottom: 10px;
+                margin-left: 10%;
             }
 
             #download-btns .download-btn {
                 width: 100%;
                 padding: 10px;
+            }
+
+            .text {
+                width: 80%;
+                height: 50px;
+                margin-left: 10%;
             }
         }
     </style>
@@ -68,17 +89,15 @@
     <button onclick="open3d()">threejs</button>
     <button onclick="openlaygame()">放置游戏</button>
     <button onclick="checkServerStatus()">查询服务器状态</button>
+    <h3>Downloads</h1>
+    <div id="download-btns" style="margin-top: 20px;"></div>
 
-    <div id="download-btns" style="margin-top: 20px;">
+    <div>
+        <textarea name="danmu" id="danmu" class="text"></textarea>
+        <textarea name="" id="" class="text"></textarea>
+        <textarea name="1" id="infoback" class="text"></textarea>
+        <button onclick="send()">发送</button>
     </div>
-
-    <textarea name="danmu" id="danmu">
-    git clone https://github.com/Honghurumeng/node-server.git
-    </textarea>
-    <textarea name="" id="">
-    </textarea>
-    <textarea name="1" id="infoback"></textarea>
-    <button onclick="send()">发送</button>
 </body>
 <script src="./autolog.js"></script>
 <script>
@@ -88,7 +107,7 @@
             .then(data => {
                 let info = [];
                 data.message = JSON.parse(data.message);
-                for(let key in data.message) {
+                for (let key in data.message) {
                     info.push(`${key}: ${data.message[key]}`);
                 }
                 clicklog.info(info.join('\n'));
