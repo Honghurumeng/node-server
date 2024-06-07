@@ -173,6 +173,11 @@
         document.body.style.background = '#111';
     });
     const login = document.querySelector('input[type="submit"]');
+    document.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+            login.click();
+        }
+    });
     login.addEventListener('click', () => {
         let password = input.value;
         fetch('/login', {
