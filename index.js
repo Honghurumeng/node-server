@@ -216,7 +216,7 @@ app.get('/threejs/utils/BufferGeometryUtils.js', (req, res) => {
 app.post('/api/uploadFile', upload.single('file'), (req, res) => {
     // 获取上传的文件对象
     const file = req.file;
-    const filename = req.filename;
+    const filename = req.body.filename;
     console.log('File uploaded:', file, filename);
     // 如果文件存在，获取文件名并编码为 UTF-8
     if (file) {
