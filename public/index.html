@@ -111,14 +111,37 @@
         const file = fileInput.files[0];
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('filename', file.name); // 添加文件名
         fetch('/api/uploadFile', {
             method: 'POST',
             body: formData
         })
-            .then(response => response.json())
+            .then(response => response.text())
             .then(data => {
                 autolog.success('Success:', data);
                 getAppNames();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+
+    function deleteFile(filename) {
+        fetch('/api/deleteFile', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ filename })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    autolog.success('Success:', data);
+                    getAppNames();
+                } else {
+                    autolog.error('Error:', data);
+                }
             })
             .catch((error) => {
                 console.error('Error:', error);
@@ -191,13 +214,27 @@
                         btn.onclick = debounce(function () {
                             window.open('/api/downloadApp/' + appName);
                         }, 1000); // 1000ms delay
+                        var deleteBtn = document.createElement('button');
+                        deleteBtn.innerText = 'Delete';
+                        deleteBtn.className = 'download-btn';
+                        deleteBtn.style.backgroundColor = '#ff0000';
+                        deleteBtn.onclick = debounce(function () {
+                            confirmDelFile(appName);
+                        }, 1000); // 1000ms delay
                         document.getElementById('download-btns').appendChild(btn);
+                        document.getElementById('download-btns').appendChild(deleteBtn);
                     });
                 } else {
                     // document.getElementById('app-name').innerHTML = data.message;
                 }
             })
             .catch(error => console.error('请求失败：', error));
+    }
+
+    function confirmDelFile(filename) {
+        if (confirm(`Are you sure to delete ${filename}?`)) {
+            deleteFile(filename);
+        }
     }
 
     function debounce(func, wait, immediate = true) {

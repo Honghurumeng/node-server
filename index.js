@@ -16,7 +16,25 @@ const multer = require('multer');
 const app = express();
 app.use(express.json());
 
-const upload = multer({ dest: 'app/' });
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'app/')
+    },
+    filename: function (req, file, cb) {
+        let originalName = req.body.filename;
+        let filename = originalName;
+        let i = 1;
+
+        // Check if file exists, if so, append a suffix
+        while (fs.existsSync(path.join('app/', filename))) {
+            filename = `${originalName}-${i}`;
+            i++;
+        }
+
+        cb(null, filename);
+    }
+})
+const upload = multer({ storage: storage })
 
 app.use(session({
     secret: 'honghurumeng',
@@ -174,7 +192,7 @@ app.post('/login', (req, res) => {
         };
         res.json({ success: true });
     } else {
-        res.json({ success: false, message: '密码错误'});
+        res.json({ success: false, message: '密码错误' });
     }
 });
 
@@ -207,6 +225,24 @@ app.get('/threejs/utils/BufferGeometryUtils.js', (req, res) => {
 app.post('/api/uploadFile', upload.single('file'), (req, res) => {
     console.log('File uploaded:', req.file);
     res.status(200).send('File uploaded');
+});
+
+// 删除文件
+app.post('/api/deleteFile', (req, res, next) => {
+    if (req.session.user) {
+        next();
+    } else {
+        res.status(401).send({ success: false, message: 'Unauthorized' });
+    }
+}, (req, res) => {
+    const filename = req.body.filename;
+    const directoryPath = path.join(__dirname, 'app');
+    fs.unlink(path.join(directoryPath, filename), (err) => {
+        if (err) {
+            return res.status(500).send({ success: false, message: 'Unable to delete file' });
+        }
+        res.status(200).send({ success: true, message: 'File deleted' });
+    });
 });
 
 app.get('/api/getAppNames', (req, res) => {
