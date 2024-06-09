@@ -37,26 +37,6 @@
             /* 控制按钮之间的间距 */
         }
 
-        #download-btns .download-btn {
-            white-space: nowrap;
-            /* 使按钮内容在一行显示 */
-            overflow: hidden;
-            /* 隐藏超出元素宽度的内容 */
-            text-overflow: ellipsis;
-            /* 当内容溢出时显示省略号 */
-            background-color: #1E88E5;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 10px 15px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        #download-btns .download-btn:hover {
-            background-color: #1565C0;
-        }
-
         /* 响应式布局 */
         @media (max-width: 600px) {
             h1 {
@@ -69,15 +49,14 @@
                 margin-left: 10%;
             }
 
-            #download-btns .download-btn {
-                width: 80%;
-                padding: 10px;
-            }
-
             .text {
                 width: 80%;
                 height: 50px;
                 margin-left: 10%;
+            }
+
+            .refresh-table-btn{
+                width: auto;
             }
         }
     </style>
@@ -93,7 +72,7 @@
     <!-- 还可以设置可选的文件类型 accept=".json" -->
     <input type="file" id="fileInput" style="display: none;" onchange="confirmUploadFile()">
     <button onclick="document.getElementById('fileInput').click()">上传文件到服务器</button>
-    <h3>Downloads<button style="margin-left: 10px;" onclick="getAppNames()">刷新</button></h3>
+    <h3>Downloads<button style="margin-left: 10px;" class="refresh-table-btn" onclick="getAppNames()">刷新</button></h3>
     <div id="download-btns" style="margin-top: 20px;">
         <table id="download-table">
             <tr>
@@ -261,7 +240,9 @@
                         tr.appendChild(td2);
                         table.appendChild(tr);
                     });
+                    autolog.success('下载列表已更新');
                 } else {
+                    autolog.error('获取下载列表失败');
                     // document.getElementById('app-name').innerHTML = data.message;
                 }
             })
