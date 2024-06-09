@@ -17,6 +17,7 @@
 
         button {
             background-color: #4CAF50;
+            height: 38.5px;
             color: white;
             border: none;
             border-radius: 4px;
@@ -84,14 +85,17 @@
 
 <body>
     <h1>Hello, Master!</h1>
-    <button onclick="openBlog()">Github</button>
+    <!-- <button onclick="openBlog()">Github</button> -->
     <button onclick="openRouge()">phaser game</button>
     <button onclick="open3d()">threejs</button>
     <button onclick="openlaygame()">放置游戏</button>
     <button onclick="checkServerStatus()">查询服务器状态</button>
-    <h3>Downloads</h1>
+    <!-- 还可以设置可选的文件类型 accept=".json" -->
+    <input type="file" id="fileInput" style="display: none;" onchange="uploadFile()">
+    <button onclick="document.getElementById('fileInput').click()">上传文件到服务器</button>
+    <h3>Downloads</h3>
     <div id="download-btns" style="margin-top: 20px;"></div>
-
+    <h3>News</h3>
     <div>
         <textarea name="danmu" id="danmu" class="text"></textarea>
         <textarea name="" id="" class="text"></textarea>
@@ -101,6 +105,26 @@
 </body>
 <script src="./autolog.js"></script>
 <script>
+
+    function uploadFile() {
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        fetch('/api/uploadFile', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                autolog.success('Success:', data);
+                getAppNames();
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+
     function checkServerStatus() {
         fetch('/api/checkServerStatus')
             .then(response => response.json())
@@ -150,6 +174,10 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        getAppNames();
+    });
+
+    function getAppNames() {
         fetch('/api/getAppNames')
             .then(response => response.json())
             .then(data => {
@@ -170,7 +198,7 @@
                 }
             })
             .catch(error => console.error('请求失败：', error));
-    });
+    }
 
     function debounce(func, wait, immediate = true) {
         let timeout;

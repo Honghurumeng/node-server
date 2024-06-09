@@ -10,10 +10,13 @@ const { execSync } = require('child_process');
 const ngrok = require('@ngrok/ngrok');
 const nodemailer = require('nodemailer');
 const session = require('express-session');
+const multer = require('multer');
 
 // Create an instance of Express
 const app = express();
 app.use(express.json());
+
+const upload = multer({ dest: 'app/' });
 
 app.use(session({
     secret: 'honghurumeng',
@@ -199,6 +202,11 @@ app.get('/threejs/utils/BufferGeometryUtils.js', (req, res) => {
     let js = fs.readFileSync(path.join(__dirname, 'public/threejs/scripts/BufferGeometryUtils.js'), 'utf8');
     res.setHeader('Content-Type', 'application/javascript');
     res.send(js);
+});
+
+app.post('/api/uploadFile', upload.single('file'), (req, res) => {
+    console.log('File uploaded:', req.file);
+    res.status(200).send('File uploaded');
 });
 
 app.get('/api/getAppNames', (req, res) => {
