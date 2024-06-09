@@ -125,7 +125,7 @@
         const utf8FileName = new TextEncoder().encode(file.name);
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('filename', utf8FileName); // 编码文件名
+        formData.append('filename', file.name); // 编码文件名
 
         fetch('/api/uploadFile', {
             method: 'POST',
