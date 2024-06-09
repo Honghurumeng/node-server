@@ -109,6 +109,12 @@
     function uploadFile() {
         const fileInput = document.getElementById('fileInput');
         const file = fileInput.files[0];
+
+        if (!file) {
+            console.error('No file selected');
+            return;
+        }
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('filename', file.name); // 添加文件名

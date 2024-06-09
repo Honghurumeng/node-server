@@ -22,6 +22,9 @@ const storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         let originalName = req.body.filename;
+        if (typeof originalName !== 'string') {
+            originalName = 'default';
+        }
         let filename = originalName;
         let i = 1;
 
@@ -34,7 +37,7 @@ const storage = multer.diskStorage({
         cb(null, filename);
     }
 })
-const upload = multer({ storage: storage })
+const upload = multer({ storage: storage });
 
 app.use(session({
     secret: 'honghurumeng',
