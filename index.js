@@ -15,27 +15,14 @@ const multer = require('multer');
 // Create an instance of Express
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'app/')
     },
     filename: function (req, file, cb) {
-        let originalName = decodeURIComponent(path.parse(file.originalname).name);
-        let ext = path.parse(file.originalname).ext;
-        if (typeof originalName !== 'string') {
-            originalName = 'default';
-        }
-        let filename = originalName;
-        let i = 1;
-
-        // Check if file exists, if so, append a suffix
-        while (fs.existsSync(path.join('app/', filename + ext))) {
-            filename = `${originalName}-${i}`;
-            i++;
-        }
-
-        cb(null, filename + ext);
+        cb(null, file.originalname);
     }
 })
 const upload = multer({ storage: storage });
@@ -227,8 +214,30 @@ app.get('/threejs/utils/BufferGeometryUtils.js', (req, res) => {
 });
 
 app.post('/api/uploadFile', upload.single('file'), (req, res) => {
-    console.log('File uploaded:', req.file);
-    res.status(200).send('File uploaded');
+    // 获取上传的文件对象
+    const file = req.file;
+    // 如果文件存在，获取文件名并编码为 UTF-8
+    if (file) {
+        let originalFileName = file.originalname;
+        const utf8FileName = Buffer.from(originalFileName, 'utf-8').toString('utf-8');
+        
+        // 获取文件名和扩展名
+        const baseName = path.basename(utf8FileName, path.extname(utf8FileName));
+        const ext = path.extname(utf8FileName);
+
+        // 处理文件名冲突
+        let finalFileName = utf8FileName;
+        let i = 1;
+        while (fs.existsSync(path.join('app/', finalFileName))) {
+            finalFileName = `${baseName}-${i}${ext}`;
+            i++;
+        }
+
+        console.log('File uploaded:', req.file);
+        res.status(200).send('File uploaded');
+    } else {
+        res.status(400).send('No file uploaded');
+    }
 });
 
 // 删除文件

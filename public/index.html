@@ -122,10 +122,10 @@
             autolog.error('No file selected');
             return;
         }
-
+        const utf8FileName = new TextEncoder().encode(fileName);
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('filename', encodeURIComponent(file.name)); // 编码文件名
+        formData.append('filename', utf8FileName); // 编码文件名
 
         fetch('/api/uploadFile', {
             method: 'POST',
