@@ -21,7 +21,8 @@ const storage = multer.diskStorage({
         cb(null, 'app/')
     },
     filename: function (req, file, cb) {
-        let originalName = decodeURIComponent(req.body.filename);
+        let originalName = path.parse(file.originalname).name;
+        let ext = path.parse(file.originalname).ext;
         if (typeof originalName !== 'string') {
             originalName = 'default';
         }
@@ -29,12 +30,12 @@ const storage = multer.diskStorage({
         let i = 1;
 
         // Check if file exists, if so, append a suffix
-        while (fs.existsSync(path.join('app/', filename))) {
+        while (fs.existsSync(path.join('app/', filename + ext))) {
             filename = `${originalName}-${i}`;
             i++;
         }
 
-        cb(null, filename);
+        cb(null, filename + ext);
     }
 })
 const upload = multer({ storage: storage });
