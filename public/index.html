@@ -106,29 +106,60 @@
 <script src="./autolog.js"></script>
 <script>
 
-    function uploadFile() {
+    function confirmUploadFile() {
+        if (confirm('Are you sure to upload this file?')) {
+            uploadFile();
+        } else {
+            autolog.info('Upload canceled');
+        }
+    }
+
+    async function uploadFile() {
         const fileInput = document.getElementById('fileInput');
         const file = fileInput.files[0];
 
         if (!file) {
-            console.error('No file selected');
+            autolog.error('No file selected');
             return;
         }
 
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('filename', file.name); // 添加文件名
-        fetch('/api/uploadFile', {
+        formData.append('filename', encodeURIComponent(file.name)); // 编码文件名
+
+        const totalBytes = file.size;
+        let uploadedBytes = 0;
+
+        const reader = file.stream().getReader();
+        const rs = new ReadableStream({
+            async start(controller) {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        break;
+                    }
+                    uploadedBytes += value.byteLength;
+                    autolog.info(`Uploaded ${uploadedBytes} of ${totalBytes} bytes`,300);
+                    controller.enqueue(value);
+                }
+                controller.close();
+                reader.releaseLock();
+            }
+        });
+
+        return fetch('/api/uploadFile', {
             method: 'POST',
-            body: formData
+            body: rs
         })
             .then(response => response.text())
             .then(data => {
                 autolog.success('Success:', data);
                 getAppNames();
+                fileInput.value = ''; // 清空文件输入框
             })
             .catch((error) => {
                 console.error('Error:', error);
+                fileInput.value = ''; // 清空文件输入框
             });
     }
 
