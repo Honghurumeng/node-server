@@ -70,7 +70,7 @@
             }
 
             #download-btns .download-btn {
-                width: 100%;
+                width: 80%;
                 padding: 10px;
             }
 
@@ -94,7 +94,14 @@
     <input type="file" id="fileInput" style="display: none;" onchange="confirmUploadFile()">
     <button onclick="document.getElementById('fileInput').click()">上传文件到服务器</button>
     <h3>Downloads</h3>
-    <div id="download-btns" style="margin-top: 20px;"></div>
+    <div id="download-btns" style="margin-top: 20px;">
+        <table id="download-table">
+            <tr>
+                <th>文件名</th>
+                <th>操作</th>
+            </tr>
+        </table>
+    </div>
     <h3>News</h3>
     <div>
         <textarea name="danmu" id="danmu" class="text"></textarea>
@@ -223,31 +230,40 @@
             .then(data => {
                 if (data.success) {
                     data.data = data.data.filter(item => item !== '.gitignore' && item !== '.DS_Store');
-                    document.getElementById('download-btns').innerHTML = '';
+                    let table = document.getElementById('download-table');
+                    let header = table.rows[0];
+                    table.innerHTML = '';
+                    table.appendChild(header);
                     data.data.forEach(appName => {
+                        var tr = document.createElement('tr');
+                        var td1 = document.createElement('td');
+                        td1.innerText = appName;
+                        var td2 = document.createElement('td');
                         var btn = document.createElement('button');
-                        btn.innerText = appName;
-                        btn.className = 'download-btn';
+                        btn.innerText = 'Download';
                         btn.onclick = debounce(function () {
                             window.open('/api/downloadApp/' + appName);
                         }, 1000); // 1000ms delay
                         var info = document.createElement('button');
-                        info.innerText = 'info';
-                        info.className = 'download-btn';
+                        info.innerText = 'Info';
                         info.style.backgroundColor = 'gray';
+                        info.style.color = 'black';
                         info.onclick = debounce(function () {
                             getFileInfo(appName);
                         }, 1000); // 1000ms delay
                         var deleteBtn = document.createElement('button');
                         deleteBtn.innerText = 'Delete';
-                        deleteBtn.className = 'download-btn';
-                        deleteBtn.style.backgroundColor = 'orange';
+                        deleteBtn.style.backgroundColor = 'gray';
+                        deleteBtn.style.color = 'black';
                         deleteBtn.onclick = debounce(function () {
                             confirmDelFile(appName);
                         }, 1000); // 1000ms delay
-                        document.getElementById('download-btns').appendChild(btn);
-                        document.getElementById('download-btns').appendChild(info);
-                        document.getElementById('download-btns').appendChild(deleteBtn);
+                        td2.appendChild(btn);
+                        td2.appendChild(info);
+                        td2.appendChild(deleteBtn);
+                        tr.appendChild(td1);
+                        tr.appendChild(td2);
+                        table.appendChild(tr);
                     });
                 } else {
                     // document.getElementById('app-name').innerHTML = data.message;

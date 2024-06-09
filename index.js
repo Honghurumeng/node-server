@@ -217,23 +217,49 @@ app.get('/threejs/utils/BufferGeometryUtils.js', (req, res) => {
 app.post('/api/uploadFile', upload.single('file'), (req, res) => {
     // 获取上传的文件对象
     const file = req.file;
-    const filename = req.body.filename;
+    let filename = req.body.filename;
 
     if (file) {
-        // 获取文件的临时路径和目标路径
+        // 获取文件的临时路径
         const tempPath = file.path;
-        const targetPath = path.join(__dirname, 'app', filename);
 
-        // 重命名文件
-        fs.rename(tempPath, targetPath, (err) => {
-            if (err) {
-                console.error('Error renaming file:', err);
-                return res.status(500).send('Error renaming file');
-            }
+        // 获取文件名和扩展名
+        const ext = path.extname(filename);
+        const basename = path.basename(filename, ext);
 
-            console.log('File renamed to:', targetPath);
-            res.status(200).send('File uploaded and renamed');
-        });
+        // 创建一个函数来生成一个唯一的文件名
+        const generateUniqueFilename = (basename, ext, suffix = 0) => {
+            // 如果后缀大于0，添加到文件名
+            const newBasename = suffix > 0 ? `${basename}-${suffix}` : basename;
+            const newFilename = `${newBasename}${ext}`;
+            const targetPath = path.join(__dirname, 'app', newFilename);
+
+            // 检查文件是否已存在
+            fs.access(targetPath, fs.constants.F_OK, (err) => {
+                if (!err) {
+                    // 文件已存在，尝试下一个后缀
+                    generateUniqueFilename(basename, ext, suffix + 1);
+                } else {
+                    // 文件不存在，可以使用这个文件名
+                    renameFile(tempPath, targetPath);
+                }
+            });
+        };
+
+        // 创建一个函数来重命名文件
+        const renameFile = (tempPath, targetPath) => {
+            fs.rename(tempPath, targetPath, (err) => {
+                if (err) {
+                    console.error('Error renaming file:', err);
+                    return res.status(500).send('Error renaming file');
+                }
+                console.log(chalk.green('File renamed to:', targetPath));
+                res.status(200).send('File uploaded and renamed');
+            });
+        };
+
+        // 开始生成唯一的文件名
+        generateUniqueFilename(basename, ext);
     } else {
         res.status(400).send('No file uploaded');
     }
@@ -246,6 +272,7 @@ app.get('/api/getFileInfo', (req, res) => {
         if (err) {
             return res.status(404).send({ message: 'File not found' });
         }
+        console.log('File stats:', stats);
         res.status(200).send({ success: true, data: stats });
     });
 });
