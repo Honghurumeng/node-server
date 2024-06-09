@@ -246,15 +246,11 @@
                         }, 1000); // 1000ms delay
                         var info = document.createElement('button');
                         info.innerText = 'Info';
-                        info.style.backgroundColor = 'gray';
-                        info.style.color = 'black';
                         info.onclick = debounce(function () {
                             getFileInfo(appName);
                         }, 1000); // 1000ms delay
                         var deleteBtn = document.createElement('button');
                         deleteBtn.innerText = 'Delete';
-                        deleteBtn.style.backgroundColor = 'gray';
-                        deleteBtn.style.color = 'black';
                         deleteBtn.onclick = debounce(function () {
                             confirmDelFile(appName);
                         }, 1000); // 1000ms delay
