@@ -282,14 +282,35 @@
             })
             .then(data => {
                 if (data.success) {
-                    let info = '文件创建时间：' + data.data.birthtime + '\n' +
-                        '文件修改时间：' + data.data.mtime + '\n' +
-                        '文件大小：' + (data.data.size / 1024 / 1024).toFixed(2) + ' MB';
+                    let info = '文件创建时间：' + formatTime(data.data.birthtimeMs) + '\n' +
+                        '文件修改时间：' + formatTime(data.data.mtimeMs) + '\n' +
+                        '文件大小：' + formatSize(data.data.size);
                     clicklog.info(info);
                 } else {
                     throw new Error(data.message);
                 }
             });
+    }
+
+    function formatSize(size) {
+        if (size < 1024) {
+            return size + 'B';
+        } else if (size < 1024 * 1024) {
+            return (size / 1024).toFixed(2) + 'KB';
+        } else {
+            return (size / 1024 / 1024).toFixed(2) + 'MB';
+        }
+    }
+
+    function formatTime(time) {
+        var date = new Date(time);
+        Y = date.getFullYear() + '-';
+        M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+        D = date.getDate() < 10 ? '0' + date.getDate() + ' ' : date.getDate() + ' ';
+        h = date.getHours() < 10 ? '0' + date.getHours() + ':' : date.getHours() + ':';
+        m = date.getMinutes() < 10 ? '0' + date.getMinutes() + ':' : date.getMinutes() + ':';
+        s = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds();
+        return Y + M + D + h + m + s;
     }
 
     function confirmDelFile(filename) {

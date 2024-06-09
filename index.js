@@ -272,7 +272,7 @@ app.get('/api/getFileInfo', (req, res) => {
         if (err) {
             return res.status(404).send({ message: 'File not found' });
         }
-        console.log('File stats:', stats);
+        // console.log('File stats:', stats);
         res.status(200).send({ success: true, data: stats });
     });
 });
