@@ -91,7 +91,7 @@
     <button onclick="openlaygame()">放置游戏</button>
     <button onclick="checkServerStatus()">查询服务器状态</button>
     <!-- 还可以设置可选的文件类型 accept=".json" -->
-    <input type="file" id="fileInput" style="display: none;" onchange="uploadFile()">
+    <input type="file" id="fileInput" style="display: none;" onchange="confirmUploadFile()">
     <button onclick="document.getElementById('fileInput').click()">上传文件到服务器</button>
     <h3>Downloads</h3>
     <div id="download-btns" style="margin-top: 20px;"></div>
@@ -114,7 +114,7 @@
         }
     }
 
-    async function uploadFile() {
+    function uploadFile() {
         const fileInput = document.getElementById('fileInput');
         const file = fileInput.files[0];
 
@@ -127,29 +127,9 @@
         formData.append('file', file);
         formData.append('filename', encodeURIComponent(file.name)); // 编码文件名
 
-        const totalBytes = file.size;
-        let uploadedBytes = 0;
-
-        const reader = file.stream().getReader();
-        const rs = new ReadableStream({
-            async start(controller) {
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) {
-                        break;
-                    }
-                    uploadedBytes += value.byteLength;
-                    autolog.info(`Uploaded ${uploadedBytes} of ${totalBytes} bytes`,300);
-                    controller.enqueue(value);
-                }
-                controller.close();
-                reader.releaseLock();
-            }
-        });
-
-        return fetch('/api/uploadFile', {
+        fetch('/api/uploadFile', {
             method: 'POST',
-            body: rs
+            body: formData
         })
             .then(response => response.text())
             .then(data => {
