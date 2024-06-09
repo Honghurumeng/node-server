@@ -231,14 +231,22 @@
                         btn.onclick = debounce(function () {
                             window.open('/api/downloadApp/' + appName);
                         }, 1000); // 1000ms delay
+                        var info = document.createElement('button');
+                        info.innerText = 'info';
+                        info.className = 'download-btn';
+                        info.style.backgroundColor = 'gray';
+                        info.onclick = debounce(function () {
+                            getFileInfo(appName);
+                        }, 1000); // 1000ms delay
                         var deleteBtn = document.createElement('button');
                         deleteBtn.innerText = 'Delete';
                         deleteBtn.className = 'download-btn';
-                        deleteBtn.style.backgroundColor = '#ff0000';
+                        deleteBtn.style.backgroundColor = 'orange';
                         deleteBtn.onclick = debounce(function () {
                             confirmDelFile(appName);
                         }, 1000); // 1000ms delay
                         document.getElementById('download-btns').appendChild(btn);
+                        document.getElementById('download-btns').appendChild(info);
                         document.getElementById('download-btns').appendChild(deleteBtn);
                     });
                 } else {
@@ -246,6 +254,26 @@
                 }
             })
             .catch(error => console.error('请求失败：', error));
+    }
+
+    function getFileInfo(filename) {
+        fetch(`/api/getFileInfo?filename=${encodeURIComponent(filename)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    let info = '文件创建时间：' + data.data.birthtime + '\n' +
+                        '文件修改时间：' + data.data.mtime + '\n' +
+                        '文件大小：' + (data.data.size / 1024 / 1024).toFixed(2) + ' MB';
+                    clicklog.info(info);
+                } else {
+                    throw new Error(data.message);
+                }
+            });
     }
 
     function confirmDelFile(filename) {

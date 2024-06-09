@@ -12,22 +12,19 @@ const nodemailer = require('nodemailer');
 const session = require('express-session');
 const multer = require('multer');
 
+let dev = process.argv.find(arg => arg.startsWith('--dev'));
+if (dev) {
+    console.log(chalk.yellow('Development mode enabled.'));
+} else {
+    console.log(chalk.yellow('Production mode enabled.'));
+}
+
 // Create an instance of Express
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'app/') // 设置文件上传的目录
-    },
-    filename: function (req, file, cb) {
-        const filename = req.body.filename; // 获取 'filename' 字段
-        cb(null, filename) // 使用原始的文件名
-    }
-})
-
-const upload = multer({ storage: storage });
+const upload = multer({ dest: 'app/' });
 
 app.use(session({
     secret: 'honghurumeng',
@@ -95,12 +92,14 @@ app.listen(port, () => {
         };
 
         try {
-            // await axios.post(url1, data, { headers });
-            console.log('Webhook triggered successfully');
-            // res.status(204).send('Webhook triggered successfully');
+            if (dev) {
+                return;
+            } else {
+                await axios.post(url1, data, { headers });
+                console.log('Webhook triggered successfully');
+            }
         } catch (error) {
             console.error('Failed to trigger webhook', error);
-            // res.status(500).send('Failed to trigger webhook');
         }
 
         // const batteryInfo = await getBatteryInfo();
@@ -218,13 +217,37 @@ app.get('/threejs/utils/BufferGeometryUtils.js', (req, res) => {
 app.post('/api/uploadFile', upload.single('file'), (req, res) => {
     // 获取上传的文件对象
     const file = req.file;
-    console.log('File uploaded:', file);
-    // 如果文件存在，获取文件名并编码为 UTF-8
+    const filename = req.body.filename;
+
     if (file) {
-        res.status(200).send('File uploaded');
+        // 获取文件的临时路径和目标路径
+        const tempPath = file.path;
+        const targetPath = path.join(__dirname, 'app', filename);
+
+        // 重命名文件
+        fs.rename(tempPath, targetPath, (err) => {
+            if (err) {
+                console.error('Error renaming file:', err);
+                return res.status(500).send('Error renaming file');
+            }
+
+            console.log('File renamed to:', targetPath);
+            res.status(200).send('File uploaded and renamed');
+        });
     } else {
         res.status(400).send('No file uploaded');
     }
+});
+
+app.get('/api/getFileInfo', (req, res) => {
+    const filename = req.query.filename;
+    const directoryPath = path.join(__dirname, 'app');
+    fs.stat(path.join(directoryPath, filename), (err, stats) => {
+        if (err) {
+            return res.status(404).send({ message: 'File not found' });
+        }
+        res.status(200).send({ success: true, data: stats });
+    });
 });
 
 // 删除文件
