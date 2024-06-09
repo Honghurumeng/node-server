@@ -19,12 +19,14 @@ app.use(express.urlencoded({ extended: true }));
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'app/')
+        cb(null, 'app/') // 设置文件上传的目录
     },
     filename: function (req, file, cb) {
-        cb(null, file.originalname);
+        const filename = req.body.filename; // 获取 'filename' 字段
+        cb(null, filename) // 使用原始的文件名
     }
 })
+
 const upload = multer({ storage: storage });
 
 app.use(session({
@@ -93,7 +95,7 @@ app.listen(port, () => {
         };
 
         try {
-            await axios.post(url1, data, { headers });
+            // await axios.post(url1, data, { headers });
             console.log('Webhook triggered successfully');
             // res.status(204).send('Webhook triggered successfully');
         } catch (error) {
@@ -216,26 +218,9 @@ app.get('/threejs/utils/BufferGeometryUtils.js', (req, res) => {
 app.post('/api/uploadFile', upload.single('file'), (req, res) => {
     // 获取上传的文件对象
     const file = req.file;
-    const filename = req.body.filename;
-    console.log('File uploaded:', file, filename);
+    console.log('File uploaded:', file);
     // 如果文件存在，获取文件名并编码为 UTF-8
     if (file) {
-        let originalFileName = file.originalname;
-        const utf8FileName = Buffer.from(originalFileName, 'utf-8').toString('utf-8');
-        
-        // 获取文件名和扩展名
-        const baseName = path.basename(utf8FileName, path.extname(utf8FileName));
-        const ext = path.extname(utf8FileName);
-
-        // 处理文件名冲突
-        let finalFileName = utf8FileName;
-        let i = 1;
-        while (fs.existsSync(path.join('app/', finalFileName))) {
-            finalFileName = `${baseName}-${i}${ext}`;
-            i++;
-        }
-
-        console.log('File uploaded:', req.file);
         res.status(200).send('File uploaded');
     } else {
         res.status(400).send('No file uploaded');
