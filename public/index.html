@@ -93,7 +93,7 @@
     <!-- 还可以设置可选的文件类型 accept=".json" -->
     <input type="file" id="fileInput" style="display: none;" onchange="confirmUploadFile()">
     <button onclick="document.getElementById('fileInput').click()">上传文件到服务器</button>
-    <h3>Downloads</h3>
+    <h3>Downloads<button style="margin-left: 10px;" onclick="getAppNames()">刷新</button></h3>
     <div id="download-btns" style="margin-top: 20px;">
         <table id="download-table">
             <tr>
