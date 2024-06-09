@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
         cb(null, 'app/')
     },
     filename: function (req, file, cb) {
-        let originalName = path.parse(file.originalname).name;
+        let originalName = decodeURIComponent(path.parse(file.originalname).name);
         let ext = path.parse(file.originalname).ext;
         if (typeof originalName !== 'string') {
             originalName = 'default';
