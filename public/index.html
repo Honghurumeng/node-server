@@ -68,6 +68,7 @@
     <button onclick="openRouge()">phaser game</button>
     <button onclick="open3d()">threejs</button>
     <button onclick="openlaygame()">放置游戏</button>
+    <button onclick="openTrello()">Trello</button>
     <button onclick="checkServerStatus()">查询服务器状态</button>
     <!-- 还可以设置可选的文件类型 accept=".json" -->
     <input type="file" id="fileInput" style="display: none;" onchange="confirmUploadFile()">
@@ -91,6 +92,9 @@
 </body>
 <script src="./autolog.js"></script>
 <script>
+    function openTrello() {
+        window.open('/trello/index.html', '_blank');
+    }
 
     function confirmUploadFile() {
         if (confirm('Are you sure to upload this file?')) {

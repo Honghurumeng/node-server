@@ -214,6 +214,31 @@ app.get('/threejs/utils/BufferGeometryUtils.js', (req, res) => {
     res.send(js);
 });
 
+// 将传来的一个json对象转换为字符串，然后保存到/app/trello.json文件中
+app.post('/saveTrello', (req, res) => {
+    const data = JSON.stringify(req.body,
+        null, 2);
+    fs.writeFile(path.join(__dirname, 'app/trello.json'), data, (err) => {
+        if (err) {
+            console.error('Error writing file:', err);
+            return res.status(500).send('Error writing file');
+        }
+        res.status(200).send('File saved');
+    }
+    );
+});
+
+// 读取/app/trello.json文件，将内容转换为json对象，然后发送给客户端
+app.get('/getTrello', (req, res) =>
+    fs.readFile(path.join(__dirname, 'app/trello.json'), 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading file:', err);
+            return res.send({success: false, message: 'Error reading file'});
+        }
+        res.send({success: true, data: JSON.parse(data)});
+    })
+);
+
 app.post('/api/uploadFile', upload.single('file'), (req, res) => {
     // 获取上传的文件对象
     const file = req.file;

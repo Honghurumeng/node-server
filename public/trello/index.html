@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红狐入梦的Trello</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            overflow-x: auto;
+            user-select: none;
+        }
+
+        .board-container {
+            display: flex;
+            /* 允许水平滚动 */
+            padding: 10px;
+            white-space: nowrap;
+            /* 防止换行 */
+        }
+
+        .board {
+            display: flex;
+            flex-wrap: nowrap;
+            /* 防止列表换行 */
+        }
+
+        .list {
+            background-color: #ffffff;
+            border-radius: 3px;
+            margin: 0 10px;
+            width: 250px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            height: fit-content;
+        }
+
+        .list-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            cursor: pointer;
+            min-height: 20px;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 3px;
+            box-shadow: 0 1px 0 rgba(9, 30, 66, .25);
+            margin-bottom: 10px;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .card-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .add-card-btn,
+        .add-list-btn {
+            background-color: #5aac44;
+            border: none;
+            color: white;
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+            margin-top: 10px;
+        }
+
+        #upload {
+            background-color: #5aac44;
+            border: none;
+            color: white;
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+            margin-left: 30px;
+            margin-right: 30px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        @media only screen and (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            /* .board-container {
+                overflow-x: scroll;
+                white-space: nowrap;
+            } */
+
+            .card {
+                width: calc(100% - 20px);
+                margin-right: 20px;
+            }
+
+            .modal {
+                width: 100%;
+            }
+
+            .modal-content {
+                width: 80%;
+                margin: 5% auto;
+            }
+
+            #upload {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+
+            #background-color {
+                margin-left: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <label for="editTitle" style="font-size: large;margin-right: 30px;font-weight: bold;">红狐入梦的Trello</label>
+        <button id="upload" onclick="upload()">上传保存</button>
+        <label for="background-color">选择背景色: </label>
+        <input type="color" id="background-color">
+    </div>
+
+    <div class="board-container">
+        <div id="board" class="board"></div>
+    </div>
+
+    <!-- Modal for editing -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <label for="editTitle">标题:</label>
+            <button id="clearTitle">清除</button>
+            <input type="color" id="card-background-color" value="#FFFFFF">
+            <input type="text" id="editTitle" style="width: 100%; margin-bottom: 10px;" autocomplete="off">
+            <label for="editContent">内容:</label>
+            <button id="clearContent">清除</button>
+            <textarea id="editContent" rows="4" style="width: 100%;margin-top: 10px;margin-bottom: 10px;"></textarea>
+            <button id="saveEdit">保存</button>
+            <button id="delEdit">删除</button>
+        </div>
+    </div>
+
+    <script src="../autolog.js"></script>
+    <script>
+        var backgroundColor = '#ffcccc'
+        var data = [
+            {
+                title: "待办",
+                cards: [
+                    { title: "任务 1", content: "内容 1", color: "#ffcccc" },
+                    { title: "任务 2", content: "内容 2", color: "#ccffcc" }
+                ],
+                color: "#ffb8b8"
+            },
+            {
+                title: "进行中",
+                cards: [
+                    { title: "任务 3", content: "内容 3", color: "#ccccff" }
+                ],
+                color: "#ffffff"
+            },
+            {
+                title: "已完成",
+                cards: [
+                    { title: "任务 4", content: "内容 4", color: "#ffcc99" }
+                ],
+                color: "#ffffff"
+            }
+        ];
+
+        let editTarget = null;
+
+        function createCardElement(card, cardIndex, listIndex) {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'card';
+            cardElement.style.backgroundColor = card.color;
+            cardElement.setAttribute('list', listIndex);
+            cardElement.setAttribute('card', cardIndex);
+
+            const cardTitle = document.createElement('div');
+            cardTitle.className = 'card-title';
+            cardTitle.textContent = card.title;
+            cardTitle.setAttribute('list', listIndex);
+            cardTitle.setAttribute('card', cardIndex);
+            cardElement.appendChild(cardTitle);
+
+            const cardContent = document.createElement('div');
+            cardContent.className = 'card-content';
+            cardContent.textContent = card.content;
+            cardContent.setAttribute('list', listIndex);
+            cardContent.setAttribute('card', cardIndex);
+            cardElement.appendChild(cardContent);
+
+            cardElement.addEventListener('click', (e) => {
+                editTarget = e.target;
+                document.getElementById('editTitle').value = cardTitle.textContent;
+                document.getElementById('editContent').value = cardContent.textContent;
+                document.getElementById('card-background-color').value = card.color;
+                document.getElementById('editModal').style.display = "block";
+            });
+
+            return cardElement;
+        }
+
+        function createListElement(list, listIndex) {
+            const listElement = document.createElement('div');
+            listElement.className = 'list';
+            listElement.style.backgroundColor = list.color;
+
+            const listHeader = document.createElement('div');
+            listHeader.className = 'list-header';
+            listHeader.textContent = list.title;
+            listHeader.setAttribute('list', listIndex);
+            listHeader.addEventListener('click', (e) => {
+                editTarget = e.target;
+                document.getElementById('editTitle').value = listHeader.textContent;
+                document.getElementById('card-background-color').value = list.color;
+                console.log(list.color);
+                document.getElementById('editContent').value = '编辑无用';
+                document.getElementById('editModal').style.display = "block";
+            });
+            listElement.appendChild(listHeader);
+
+            list.cards.forEach((card, index) => {
+                const cardElement = createCardElement(card, index, listIndex);
+                listElement.appendChild(cardElement);
+            });
+
+            const addCardButton = document.createElement('button');
+            addCardButton.className = 'add-card-btn';
+            addCardButton.textContent = '添加卡片';
+            addCardButton.addEventListener('click', () => {
+                const newCard = { title: "新任务", content: "新内容", color: "#ccccff" };
+                data[listIndex].cards.push(newCard);
+                console.log(data);
+                const cardElement = createCardElement(newCard, list.cards.length - 1, listIndex);
+                listElement.insertBefore(cardElement, addCardButton);
+            });
+
+            listElement.appendChild(addCardButton);
+
+            return listElement;
+        }
+
+        function renderBoard() {
+            document.body.style.backgroundColor = backgroundColor;
+            document.getElementById('background-color').value = backgroundColor;
+
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+
+            data.forEach((list, index) => {
+                const listElement = createListElement(list, index);
+                board.appendChild(listElement);
+            });
+
+            const listPlaceholder = document.createElement('div');
+            listPlaceholder.className = 'list';
+
+            const addListButton = document.createElement('button');
+            addListButton.className = 'add-list-btn';
+            addListButton.textContent = '添加列表';
+            addListButton.addEventListener('click', () => {
+                const newList = { title: "新列表", cards: [], color: "#ffffff" };
+                data.push(newList);
+                renderBoard();
+            });
+
+            listPlaceholder.appendChild(addListButton);
+            board.appendChild(listPlaceholder);
+        }
+
+        document.getElementById('background-color').addEventListener('input', (e) => {
+            document.body.style.backgroundColor = e.target.value;
+        });
+
+        document.getElementById('saveEdit').addEventListener('click', () => {
+            if (editTarget) {
+                console.log(editTarget);
+                if (editTarget.className === 'list-header') {
+                    let listIndex = editTarget.getAttribute('list');
+                    data[listIndex].title = document.getElementById('editTitle').value;
+                    data[listIndex].color = document.getElementById('card-background-color').value;
+                    editTarget.parentElement.style.backgroundColor = document.getElementById('card-background-color').value;
+                    editTarget.textContent = document.getElementById('editTitle').value;
+                } else if (editTarget.className.includes('card')) {
+                    let listIndex = editTarget.getAttribute('list');
+                    let cardIndex = editTarget.getAttribute('card');
+                    if (editTarget.className !== 'card') {
+                        editTarget = editTarget.parentElement;
+                    }
+                    data[listIndex].cards[cardIndex].title = document.getElementById('editTitle').value;
+                    data[listIndex].cards[cardIndex].content = document.getElementById('editContent').value;
+                    data[listIndex].cards[cardIndex].color = document.getElementById('card-background-color').value;
+                    editTarget.style.backgroundColor = document.getElementById('card-background-color').value;
+                    editTarget.querySelector('.card-title').innerHTML = document.getElementById('editTitle').value;
+                    editTarget.querySelector('.card-content').innerHTML = document.getElementById('editContent').value;
+                }
+                console.log(data);
+                document.getElementById('editModal').style.display = "none";
+            }
+        });
+
+        document.getElementById('delEdit').addEventListener('click', () => {
+            if (editTarget) {
+                if (editTarget.className === 'list-header') {
+                    let listIndex = editTarget.getAttribute('list');
+                    data.splice(listIndex, 1);
+                } else if (editTarget.className.includes('card')) {
+                    let listIndex = editTarget.getAttribute('list');
+                    let cardIndex = editTarget.getAttribute('card');
+                    data[listIndex].cards.splice(cardIndex, 1);
+                }
+                document.getElementById('editModal').style.display = "none";
+                renderBoard();
+            }
+        });
+
+        document.getElementById('clearTitle').addEventListener('click', () => {
+            document.getElementById('editTitle').value = '';
+        });
+
+        document.getElementById('clearContent').addEventListener('click', () => {
+            document.getElementById('editContent').value = '';
+        });
+
+        document.querySelector('.close').addEventListener('click', () => {
+            document.getElementById('editModal').style.display = "none";
+        });
+
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && document.getElementById('editModal').style.display === 'block') {
+                document.getElementById('saveEdit').click();
+            }
+        });
+
+        function upload() {
+            fetch('/saveTrello', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ data, backgroundColor }),
+            }).then(response => {
+                if (response.ok) {
+                    autolog.success('保存成功');
+                } else {
+                    autolog.error('保存失败');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/getTrello').then(response => response.json()).then((res) => {
+                if (res.success) {
+                    console.log(res);
+                    data = res.data.data;
+                    backgroundColor = res.data.backgroundColor;
+                } else {
+                    autolog.error('获取失败');
+                }
+                renderBoard();
+            });
+        });
+
+        // 记录鼠标按下时的初始位置和页面滚动位置
+        let initialMouseX = 0;
+        let initialMouseY = 0;
+        let initialScrollX = 0;
+        let initialScrollY = 0;
+
+        // 监听鼠标按下事件
+        document.addEventListener('mousedown', (event) => {
+            initialMouseX = event.clientX;
+            initialMouseY = event.clientY;
+            initialScrollX = window.scrollX;
+            initialScrollY = window.scrollY;
+
+            // 监听鼠标移动事件
+            document.addEventListener('mousemove', handleMouseMove);
+
+            // 监听鼠标释放事件
+            document.addEventListener('mouseup', () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+            });
+        });
+
+        // 处理鼠标移动事件
+        function handleMouseMove(event) {
+            const deltaX = event.clientX - initialMouseX;
+            const deltaY = event.clientY - initialMouseY;
+
+            window.scrollTo(initialScrollX - deltaX, initialScrollY - deltaY);
+        }
+
+        window.onbeforeunload = function () {
+            return '您有未保存的更改，确定要关闭页面吗？';
+        };
+    </script>
+</body>
+
+</html>
