@@ -322,7 +322,7 @@
         animation: 150,
         draggable: ".card",
         filter: ".add-card-btn",
-        onAdd: function (evt) {
+        onSort: function (evt) {
           // 当列表中可拖动的元素为0时，再次添加卡片，会出现在不可拖动的按钮之后
           // 发现卡片在按钮之后时，将其放在添加卡片按钮之前
           var addCardBtn = evt.to.querySelector(".add-card-btn");
