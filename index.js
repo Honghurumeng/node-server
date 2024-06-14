@@ -4,7 +4,7 @@ const axios = require('axios');
 const chalk = require('chalk');//"chalk": "^2.4.2",
 const fs = require('fs');
 const path = require('path');
-// const os = require('os');
+const os = require('os');
 const { execSync } = require('child_process');
 // const http = require('http');
 const ngrok = require('@ngrok/ngrok');
@@ -39,20 +39,19 @@ app.use(session({
 // 	res.end('Congrats you have created an ngrok web server');
 // }).listen(8080, () => console.log('Node.js web server at 8080 is running...'));
 
-// try {
-//     // 打印ip
-// const networkInterfaces = os.networkInterfaces();
-// // 输出网络接口信息
-// let ip = '';
-// for (const key in networkInterfaces) {
-//     const iface = networkInterfaces[key];
-//     for (const address of iface) {
-//         if (address.family === 'IPv4' && !address.internal) {
-//             console.log(`Your IPv4 address is: ${address.address}`);
-//             ip = address.address;
-//         }
-//     }
-// }
+let ip = '';
+if (dev) {
+    const networkInterfaces = os.networkInterfaces();
+    // 输出网络接口信息
+    for (const key in networkInterfaces) {
+        const iface = networkInterfaces[key];
+        for (const address of iface) {
+            if (address.family === 'IPv4' && !address.internal) {
+                ip = address.address;
+            }
+        }
+    }
+}
 
 // Start the server
 const port = process.env.PORT || 3000;
@@ -62,11 +61,17 @@ const GITHUB_TOKEN = process.env.GITHUB_IO_ADDRESS;
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
-    // console.log(`http://${ip}:${port}`);
+    if (dev) {
+        console.log(`http://${ip}:${port}`);
+    }
 });
 
 (async function () {
     try {
+        if (dev) {
+            return;
+        }
+
         // 设置 authtoken
         await ngrok.authtoken(process.env.NGROK_AUTH_TOKEN);
 
@@ -92,38 +97,15 @@ app.listen(port, () => {
         };
 
         try {
-            if (dev) {
-                return;
-            } else {
-                await axios.post(url1, data, { headers });
-                console.log('Webhook triggered successfully');
-            }
+            await axios.post(url1, data, { headers });
+            console.log('Webhook triggered successfully');
         } catch (error) {
             console.error('Failed to trigger webhook', error);
         }
-
-        // const batteryInfo = await getBatteryInfo();
-        // let batteryNum = batteryInfo.percentage;
-        // sendPushMessage('Node Server booted / ' + batteryNum, 'Ngrok URL: ' + url.url() + '\n'
-        //     + '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动');
-        // sendEmail('Ngrok URL: ' + url.url() + '\n' + '当前系统电量：' + batteryNum + '\n' + JSON.stringify(batteryInfo) + '\n' + '服务器已启动');
-        // setInterval(async () => {
-        //     const batteryInfo = await getBatteryInfo();
-        //     let batteryNum = batteryInfo.percentage;
-        //     sendPushMessage('当前系统电量：' + batteryNum, JSON.stringify(batteryInfo));
-        //     // sendEmail('当前系统电量：' + batteryNum);
-        // }, 1000 * 60 * 30);
     } catch (err) {
         console.error('Error while connecting Ngrok', err);
     }
 })();
-
-// Get your endpoint online
-// ngrok.connect({ addr: port, authtoken: process.env.NGROK_AUTH_TOKEN })
-//     .then(listener => console.log(`Ingress established at: ${listener.url}`));
-// } catch (err) {
-//     console.error('Error executing ip command:', err);
-// }
 
 app.post('/webhook-result', async (req, res) => {
     console.log('GitHub Actions completed:', req.body);
@@ -178,7 +160,7 @@ app.get('/', (req, res) => {
 
 app.post('/login', (req, res) => {
     const password = req.body.password;
-    if (password === '1998') {
+    if (password === process.env.NODE_SERVER_PASSWORD) {
         req.session.user = {
             username: 'hhrm'
         };
@@ -233,9 +215,9 @@ app.get('/getTrello', (req, res) =>
     fs.readFile(path.join(__dirname, 'app/trello.json'), 'utf8', (err, data) => {
         if (err) {
             console.error('Error reading file:', err);
-            return res.send({success: false, message: 'Error reading file'});
+            return res.send({ success: false, message: 'Error reading file' });
         }
-        res.send({success: true, data: JSON.parse(data)});
+        res.send({ success: true, data: JSON.parse(data) });
     })
 );
 
