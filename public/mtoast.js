@@ -7,7 +7,7 @@ const svgIcons = {
     x: `<svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16"><path d="M256 810.666667c-12.8 0-21.333333-4.266667-29.866667-12.8-17.066667-17.066667-17.066667-42.666667 0-59.733334l512-512c17.066667-17.066667 42.666667-17.066667 59.733334 0s17.066667 42.666667 0 59.733334l-512 512c-8.533333 8.533333-17.066667 12.8-29.866667 12.8zM768 810.666667c-12.8 0-21.333333-4.266667-29.866667-12.8l-512-512c-17.066667-17.066667-17.066667-42.666667 0-59.733334s42.666667-17.066667 59.733334 0l512 512c17.066667 17.066667 17.066667 42.666667 0 59.733334-8.533333 8.533333-17.066667 12.8-29.866667 12.8z" fill="#000000"/></svg>`,
 };
 const autolog = {
-    log(type, text, time = 2500) {
+    log(type, text, time = 2000) {
         time += 900; // 400ms for fadein, 500ms for fadeout
         let mainEl = getMainElement();
         let el = document.createElement("span");
@@ -36,50 +36,60 @@ const autolog = {
     },
 };
 const clicklog = {
-    log(type, text) {
+    log(type, text, addDismissButton = false) {
+        let mtoastDismissInfo = localStorage.getItem('mtoastDismissInfo') ? JSON.parse(localStorage.getItem('mtoastDismissInfo')) : [];
+        if (mtoastDismissInfo.includes(text) && addDismissButton) return;
         let mainEl = getMainElement();
         let el = document.createElement("span");
         el.className = `autolog-${type}`;
         el.innerHTML = svgIcons[type] + `<span>${text.replace(/\n/g, "</br>")}</span>` + getX(type);
+        if (addDismissButton) {
+            let dismissEl = document.createElement("a");
+            dismissEl.innerHTML = '不再显示';
+            dismissEl.href = 'javascript:;';
+            dismissEl.style.color = mtoastElementColor[type];
+            dismissEl.addEventListener('click', () => {
+                mtoastDismissInfo.push(text);
+                localStorage.setItem('mtoastDismissInfo', JSON.stringify(mtoastDismissInfo));
+            });
+            el.appendChild(dismissEl);
+        }
         mainEl.appendChild(el);
         el.addEventListener('click', () => {
             mainEl.removeChild(el);
             el = null;
         });
     },
-    warn(text) {
-        this.log('warn', text);
+    warn(text, addDismissButton) {
+        this.log('warn', text, addDismissButton);
     },
-    error(text) {
-        this.log('error', text);
+    error(text, addDismissButton) {
+        this.log('error', text, addDismissButton);
     },
-    info(text) {
-        this.log('info', text);
+    info(text, addDismissButton) {
+        this.log('info', text, addDismissButton);
     },
-    success(text) {
-        this.log('success', text);
+    success(text, addDismissButton) {
+        this.log('success', text, addDismissButton);
+    },
+    clearAllDismissInfo() {
+        localStorage.removeItem('mtoastDismissInfo');
+    },
+    clearDismissInfo(text) {
+        let mtoastDismissInfo = localStorage.getItem('mtoastDismissInfo') ? JSON.parse(localStorage.getItem('mtoastDismissInfo')) : [];
+        mtoastDismissInfo = mtoastDismissInfo.filter(item => item !== text);
+        localStorage.setItem('mtoastDismissInfo', JSON.stringify(mtoastDismissInfo));
     }
+};
+let mtoastElementColor = {
+    warn: '#e29505',
+    error: '#d93025',
+    info: '#0e6eb8',
+    success: '#1a9e2c',
 };
 function getX(type) {
     let svgEl = svgIcons.x;
-    let color;
-    switch (type) {
-        case 'warn':
-            color = '#e29505';
-            break;
-        case 'error':
-            color = '#d93025';
-            break;
-        case 'info':
-            color = '#0e6eb8';
-            break;
-        case 'success':
-            color = '#1a9e2c';
-            break;
-        default:
-            color = '#000000';
-    }
-    svgEl = svgEl.replace('fill="#000000"', `fill="${color}"`);
+    svgEl = svgEl.replace('fill="#000000"', `fill="${mtoastElementColor[type]}"`);
     return svgEl;
 }
 function getMainElement() {
