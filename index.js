@@ -137,6 +137,14 @@ app.use((req, res, next) => {
     // console.log(req)
     // if (req.ip !== lastIp) {
     console.log(`${formatTime(Date.now())} Received a ${req.method} request from ${req.ip} for ${req.url}`);
+    // console.log('Forbidden', req.url);
+
+    // if(req.url.endsWith('.html') || req.url.endsWith('.js') || req.url.endsWith('.css') || req.url.endsWith('.png') || req.url.endsWith('.jpg') || req.url.endsWith('.ico')) {
+    //     // 拒绝访问
+    //     console.log('Forbidden', req.url);
+    //     res.status(403).send('Forbidden');
+    //     return;
+    // }
     // lastIp = req.ip;
     // }
     next();
@@ -160,7 +168,7 @@ app.get('/', (req, res) => {
 
 app.post('/login', (req, res) => {
     const password = req.body.password;
-    if (password === process.env.NODE_SERVER_PASSWORD) {
+    if (password === process.env.NODE_SERVER_PASSWORD || dev) {
         req.session.user = {
             username: 'hhrm'
         };

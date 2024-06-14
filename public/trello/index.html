@@ -493,6 +493,9 @@
           let listIndex = editTarget.getAttribute("list");
           data.splice(listIndex, 1);
         } else if (editTarget.className.includes("card")) {
+          if (editTarget.className !== "card") {
+            editTarget = editTarget.parentElement;
+          }
           let listIndex = editTarget.getAttribute("list");
           let cardIndex = editTarget.getAttribute("card");
           data[listIndex].cards.splice(cardIndex, 1);
