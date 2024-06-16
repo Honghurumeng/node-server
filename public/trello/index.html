@@ -170,7 +170,7 @@
 </head>
 
 <body>
-  <div>
+  <div style="position: fixed; top: 0; left: 0; width: 100%; z-index: 100;padding: 20px 20px 10px 20px;" id="topPanel">
     <label for="editTitle" style="font-size: large; margin-right: 30px; font-weight: bold">红狐入梦的Trello</label>
     <button id="upload" onclick="upload()">上传保存</button>
     <label for="upload" id="saveStatus" style="margin-right: 30px;margin-left: 5px;">下载完成</label>
@@ -180,7 +180,7 @@
     <input type="color" id="button-color" />
   </div>
 
-  <div class="board-container">
+  <div class="board-container" style="margin-top: 60px;">
     <div id="board" class="board"></div>
   </div>
 
@@ -190,10 +190,12 @@
       <span class="close">&times;</span>
       <label for="editTitle">标题:</label>
       <button id="clearTitle">清除</button>
-      <input type="text" id="editTitle" style="width: 100%; margin-bottom: 10px;" autocomplete="off" />
+      <input type="text" id="editTitle"
+        style="width: 100%; margin-bottom: 10px;font-family: Arial, Helvetica, sans-serif;" autocomplete="off" />
       <label for="editContent">内容:</label>
       <button id="clearContent">清除</button>
-      <textarea id="editContent" rows="4" style="width: 100%; margin-top: 10px; margin-bottom: 5px"></textarea>
+      <textarea id="editContent" rows="8"
+        style="width: 100%; margin-top: 10px; margin-bottom: 5px;font-family: Arial, Helvetica, sans-serif;"></textarea>
 
       <div style="display: flex;margin-bottom: 10px;display: flex;">
         <label for="card-background-color" style="margin-right: 5px;">颜色:</label>
@@ -352,24 +354,25 @@
       });
       listElement.appendChild(listHeader);
 
+      const cardList = document.createElement("div");
       list.cards.forEach((card, index) => {
         const cardElement = createCardElement(card, index, listIndex);
-        listElement.appendChild(cardElement);
+        cardList.appendChild(cardElement);
       });
-
-      Sortable.create(listElement, {
+      listElement.appendChild(cardList);
+      Sortable.create(cardList, {
         group: "cards",
         animation: 150,
-        draggable: ".card",
-        filter: ".add-card-btn",
-        onSort: function (evt) {
-          // 当列表中可拖动的元素为0时，再次添加卡片，会出现在不可拖动的按钮之后
-          // 发现卡片在按钮之后时，将其放在添加卡片按钮之前
-          var addCardBtn = evt.to.querySelector(".add-card-btn");
-          if (addCardBtn && addCardBtn.nextElementSibling === evt.item) {
-            evt.to.insertBefore(evt.item, addCardBtn);
-          }
-        },
+        // draggable: ".card",
+        // filter: ".add-card-btn",
+        // onSort: function (evt) {
+        //   // 当列表中可拖动的元素为0时，再次添加卡片，会出现在不可拖动的按钮之后
+        //   // 发现卡片在按钮之后时，将其放在添加卡片按钮之前
+        //   var addCardBtn = evt.to.querySelector(".add-card-btn");
+        //   if (addCardBtn && addCardBtn.nextElementSibling === evt.item) {
+        //     evt.to.insertBefore(evt.item, addCardBtn);
+        //   }
+        // },
         onEnd: function (evt) {
           saveTrelloListInfo();
         },
@@ -392,7 +395,6 @@
         listElement.insertBefore(cardElement, addCardButton);
         saveTrelloListInfo();
       });
-
       listElement.appendChild(addCardButton);
 
       return listElement;
@@ -400,6 +402,7 @@
 
     function renderBoard() {
       document.body.style.backgroundColor = backgroundColor;
+      document.getElementById("topPanel").style.backgroundColor = backgroundColor;
       document.getElementById("background-color").value = backgroundColor;
       document.getElementById("button-color").value = allButtonColor;
       document.documentElement.style.setProperty(
@@ -431,8 +434,11 @@
       addListButton.textContent = "添加列表";
       addListButton.addEventListener("click", () => {
         const newList = { title: "新列表", cards: [], color: "#ffb8b8" };
+        // data.push(newList);
+        // renderBoard();
+        const listElement = createListElement(newList, data.length - 1);
+        board.insertBefore(listElement, listPlaceholder);
         saveTrelloListInfo();
-        renderBoard();
       });
 
       listPlaceholder.appendChild(addListButton);
@@ -444,6 +450,7 @@
       .addEventListener("input", (e) => {
         backgroundColor = e.target.value;
         document.body.style.backgroundColor = e.target.value;
+        document.getElementById("topPanel").style.backgroundColor = e.target.value;
       });
 
     document
@@ -497,9 +504,10 @@
     document.getElementById("delEdit").addEventListener("click", () => {
       if (editTarget) {
         if (editTarget.className === "list-header") {
+          // console.log(editTarget.parentElement);
           // let listIndex = editTarget.getAttribute("list");
           // data.splice(listIndex, 1);
-          editTarget.remove();
+          editTarget.parentElement.remove();
         } else if (editTarget.className.includes("card")) {
           if (editTarget.className !== "card") {
             editTarget = editTarget.parentElement;
