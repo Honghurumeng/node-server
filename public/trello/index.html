@@ -70,6 +70,7 @@
     .card-content {
       font-size: 14px;
       white-space: pre-wrap;
+      word-wrap: break-word;
       font-family: Arial, Helvetica, sans-serif;
       margin-top: -3px;
       margin-bottom: -3px;
@@ -99,7 +100,7 @@
     .modal {
       display: none;
       position: fixed;
-      z-index: 1;
+      z-index: 101;
       left: 0;
       top: 0;
       width: 100%;
@@ -453,6 +454,7 @@
         backgroundColor = e.target.value;
         document.body.style.backgroundColor = e.target.value;
         document.getElementById("topPanel").style.backgroundColor = e.target.value;
+        document.getElementById("saveStatus").textContent = "未上传";
       });
 
     document
@@ -463,6 +465,7 @@
           "--button-color",
           e.target.value
         );
+        document.getElementById("saveStatus").textContent = "未上传";
       });
 
     document.getElementById("saveEdit").addEventListener("click", () => {
@@ -495,7 +498,7 @@
           ).value;
           editTarget.querySelector(".card-title").innerHTML =
             document.getElementById("editTitle").value;
-          editTarget.querySelector(".card-content").innerHTML =
+          editTarget.querySelector(".card-content").textContent =
             document.getElementById("editContent").value;
         }
         saveTrelloListInfo();
