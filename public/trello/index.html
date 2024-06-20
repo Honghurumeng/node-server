@@ -626,13 +626,18 @@
           pageInstance = pagemap(document.querySelector("#map"), {
             viewport: null,
             styles: {
+              // 注意：要展示在前面的元素要写在后面
               // "#topPanel": "rgba(0,0,0,0.08)",
-              ".list,.add-list": "rgba(0,0,0,0.3)",
-              ".card": "rgba(0,0,0,0.5)",
+              // ".list,.add-list": "rgba(0,0,0,0.3)",
+              ".list,.add-list": "default",
+              // ".card": "rgba(0,0,0,0.5)",
+              ".card": "default",
               // "h2,h3,h4": "rgba(0,0,0,0.08)",
             },
             back: "rgba(0,0,0,0.2)",
-            view: "rgba(0,0,0,0.4)",
+            // view: "rgba(0,0,0,0.4)",
+            // drag: "rgba(0,0,0,0.4)",
+            view: "default",
             drag: "rgba(0,0,0,0.4)",
             interval: null,
           });

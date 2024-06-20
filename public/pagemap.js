@@ -115,21 +115,31 @@ const pagemap = (canvas, options) => {
   let drag_rx;
   let drag_ry;
 
-  // 绘制矩形
-  const draw_rect = (rect, col) => {
+  // 绘制矩形，当是drag或者view时，绘制线框
+  const draw_rect = (rect, col, drag = false) => {
     if (col) {
-      CTX.beginPath();
-      CTX.rect(rect.x, rect.y, rect.w, rect.h);
-      CTX.fillStyle = col;
-      CTX.fill();
+      if (drag && col === "default") {
+        CTX.beginPath();
+        CTX.strokeStyle = 'black';
+        CTX.lineWidth = 5;
+        CTX.strokeRect(rect.x, rect.y, rect.w, rect.h);
+      } else {
+        CTX.beginPath();
+        CTX.rect(rect.x, rect.y, rect.w, rect.h);
+        CTX.fillStyle = col;
+        CTX.fill();
+      }
     }
   };
-  
+
   // 应用样式
   const apply_styles = (styles) => {
     Object.keys(styles).forEach((sel) => {
-      const col = styles[sel];
       find(sel).forEach((el) => {
+        let col = styles[sel];
+        if (col === "default") {
+          col = el.style.backgroundColor;
+        }
         draw_rect(rect_rel_to(rect_of_el(el), root_rect), col);
       });
     });
@@ -151,7 +161,8 @@ const pagemap = (canvas, options) => {
     apply_styles(settings.styles);
     draw_rect(
       rect_rel_to(view_rect, root_rect),
-      drag ? settings.drag : settings.view
+      drag ? settings.drag : settings.view,
+      true
     );
   };
 
@@ -174,8 +185,8 @@ const pagemap = (canvas, options) => {
   // 结束拖拽事件处理
   const on_drag_end = (ev) => {
     drag = false;
-    canvas.style.cursor = "pointer";
-    BODY.style.cursor = "auto";
+    // canvas.style.cursor = "pointer";
+    // BODY.style.cursor = "auto";
     off(WIN, "mousemove", on_drag);
     off(WIN, "mouseup", on_drag_end);
     on_drag(ev);
@@ -194,8 +205,8 @@ const pagemap = (canvas, options) => {
       drag_ry = 0.5;
     }
 
-    canvas.style.cursor = "crosshair";
-    BODY.style.cursor = "crosshair";
+    // canvas.style.cursor = "crosshair";
+    // BODY.style.cursor = "crosshair";
     on(WIN, "mousemove", on_drag);
     on(WIN, "mouseup", on_drag_end);
     on_drag(ev);
