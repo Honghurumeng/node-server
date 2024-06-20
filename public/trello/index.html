@@ -359,7 +359,7 @@
         document.getElementById("editTitle").value = cardTitle.textContent;
         document.getElementById("editContent").value =
           cardContent.textContent;
-        document.getElementById("card-background-color").value = card.color;
+        document.getElementById("card-background-color").value = rgbToHex(cardElement.style.backgroundColor);
         document.documentElement.style.setProperty(
           "--editing-color",
           cardElement.style.backgroundColor
@@ -384,7 +384,7 @@
         editTarget = listHeader;
         document.getElementById("editTitle").value = listHeader.textContent;
         document.getElementById("editContent").value = "编辑无用";
-        document.getElementById("card-background-color").value = list.color;
+        document.getElementById("card-background-color").value = rgbToHex(listElement.style.backgroundColor);
         document.documentElement.style.setProperty(
           "--editing-color",
           listElement.style.backgroundColor
