@@ -138,7 +138,7 @@ const pagemap = (canvas, options) => {
       find(sel).forEach((el) => {
         let col = styles[sel];
         if (col === "default") {
-          col = el.style.backgroundColor;
+          col = getComputedStyle(el).backgroundColor;
         }
         draw_rect(rect_rel_to(rect_of_el(el), root_rect), col);
       });
