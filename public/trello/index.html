@@ -84,7 +84,7 @@
       padding: 5px;
       cursor: pointer;
       border-radius: 3px;
-      margin-top: 10px;
+      /* margin-top: 10px; */
     }
 
     .topBtn {
@@ -195,6 +195,7 @@
     <label for="button-color">选择按钮颜色: </label>
     <input type="color" id="button-color" />
     <button id="mapSwitch" class="topBtn" onclick="mapSwitch()">隐藏地图</button>
+    <button id="addCardPosSwitch" class="topBtn" onclick="addCardPosSwitch()">顶部添加</button>
   </div>
   <canvas id="map"></canvas>
 
@@ -266,6 +267,8 @@
   <script>
     var pageInstance = null;
 
+    var addCardPos = "bottom";
+
     var backgroundColor = "#ffcccc";
     var allButtonColor = "#885fb9";
     var pagePosX = 0;
@@ -303,6 +306,36 @@
         document.getElementById("map").style.display = "none";
         document.getElementById("mapSwitch").textContent = "显示地图";
       }
+    }
+
+    function addCardPosSwitch() {
+      if (document.getElementById("addCardPosSwitch").textContent === "底部添加") {
+        addCardPos = "bottom";
+        document.getElementById("addCardPosSwitch").textContent = "顶部添加";
+        document.querySelectorAll(".add-card-btn").forEach((btn) => {
+          // btn.style.marginTop = "10px";
+          btn.style.marginBottom = "0";
+          const parent = btn.parentNode;
+          const nextElement = btn.nextElementSibling;
+          if (parent && nextElement) {
+            parent.insertBefore(nextElement, btn);
+          }
+        });
+      } else {
+        addCardPos = "top";
+        document.getElementById("addCardPosSwitch").textContent = "底部添加";
+        document.querySelectorAll(".add-card-btn").forEach((btn) => {
+          // btn.style.marginTop = "0";
+          btn.style.marginBottom = "10px";
+          const parent = btn.parentNode;
+          const previousElement = btn.previousElementSibling;
+          if (parent && previousElement) {
+            parent.insertBefore(btn, previousElement);
+          }
+        });
+      }
+      document.getElementById("saveStatus").textContent = "未上传";
+      // console.log(addCardPos);
     }
 
     function saveTrelloListInfo() {
@@ -421,7 +454,12 @@
           list.cards.length - 1,
           listIndex
         );
-        cardList.appendChild(cardElement);
+        // cardList.appendChild(cardElement);
+        if (addCardPos === "bottom") {
+          cardList.appendChild(cardElement);
+        } else {
+          cardList.insertBefore(cardElement, cardList.firstChild);
+        }
         saveTrelloListInfo();
       });
       listElement.appendChild(addCardButton);
@@ -585,7 +623,7 @@
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ data, backgroundColor, allButtonColor, pagePosX, pagePosY }),
+        body: JSON.stringify({ data, backgroundColor, allButtonColor, pagePosX, pagePosY, addCardPos }),
       }).then((response) => {
         if (response.ok) {
           autolog.success("保存成功");
@@ -606,7 +644,7 @@
         .then((response) => response.json())
         .then((res) => {
           if (res.success) {
-            // console.log(res);
+            // console.log(res.data);
             data = res.data.data;
             backgroundColor = res.data.backgroundColor;
             if (res.data.allButtonColor) {
@@ -618,27 +656,31 @@
             if (res.data.pagePosY) {
               pagePosY = res.data.pagePosY;
             }
+            if (res.data.addCardPos) {
+              addCardPos = res.data.addCardPos;
+            }
           } else {
             autolog.error("获取失败");
           }
           renderBoard();
           scrollToPagePos();
+          if (addCardPos === "top") {
+            addCardPosSwitch();
+          }
           pageInstance = pagemap(document.querySelector("#map"), {
             viewport: null,
             styles: {
               // 注意：要展示在前面的元素要写在后面
-              // "#topPanel": "rgba(0,0,0,0.08)",
               // ".list,.add-list": "rgba(0,0,0,0.3)",
               ".list,.add-list": "default",
-              // ".card": "rgba(0,0,0,0.5)",
-              ".card": "default",
-              // "h2,h3,h4": "rgba(0,0,0,0.08)",
+              ".card": "rgba(0,0,0,0.5)",
+              // ".card": "default",
             },
             back: "rgba(0,0,0,0.2)",
-            // view: "rgba(0,0,0,0.4)",
+            view: "rgba(0,0,0,0.3)",
             // drag: "rgba(0,0,0,0.4)",
-            view: "default",
-            drag: "rgba(0,0,0,0.4)",
+            // view: "default",
+            drag: "rgba(0,0,0,0.3)",
             interval: null,
           });
         })

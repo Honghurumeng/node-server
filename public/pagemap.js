@@ -2,7 +2,6 @@ const pagemap = (canvas, options) => {
   const WIN = window; // 窗口对象
   const DOC = WIN.document; // 文档对象
   const DOC_EL = DOC.documentElement; // HTML 根元素
-  const BODY = DOC.querySelector("body"); // body 元素
   const CTX = canvas.getContext("2d"); // 获取 canvas 上下文
 
   // 生成黑色透明度的颜色
@@ -12,7 +11,8 @@ const pagemap = (canvas, options) => {
   const settings = Object.assign(
     {
       viewport: null, // 视口元素
-      styles: { // 不同元素的样式
+      styles: {
+        // 不同元素的样式
         "header,footer,section,article": black(8),
         "h1,a": black(10),
         "h2,h3,h4": black(8),
@@ -29,7 +29,8 @@ const pagemap = (canvas, options) => {
   const _listener = (el, method, types, fn) =>
     types.split(/\s+/).forEach((type) => el[method](type, fn));
   const on = (el, types, fn) => _listener(el, "addEventListener", types, fn);
-  const off = (el, types, fn) => _listener(el, "removeEventListener", types, fn);
+  const off = (el, types, fn) =>
+    _listener(el, "removeEventListener", types, fn);
 
   // 创建矩形对象
   const Rect = (x, y, w, h) => {
@@ -115,14 +116,16 @@ const pagemap = (canvas, options) => {
   let drag_rx;
   let drag_ry;
 
+  let rangeRectLineWidth = 5;
+
   // 绘制矩形，当是drag或者view时，绘制线框
-  const draw_rect = (rect, col, drag = false) => {
+  const draw_rect = (rect, col, rangeRect = false) => {
     if (col) {
-      if (drag && col === "default") {
+      if (rangeRect && col === "default") {
         CTX.beginPath();
-        CTX.strokeStyle = 'black';
-        CTX.lineWidth = 5;
-        CTX.strokeRect(rect.x, rect.y, rect.w, rect.h);
+        CTX.strokeStyle = "black";
+        CTX.lineWidth = rangeRectLineWidth;
+        CTX.strokeRect(rect.x, rect.y, rect.w - rangeRectLineWidth, rect.h - rangeRectLineWidth);
       } else {
         CTX.beginPath();
         CTX.rect(rect.x, rect.y, rect.w, rect.h);
@@ -185,8 +188,6 @@ const pagemap = (canvas, options) => {
   // 结束拖拽事件处理
   const on_drag_end = (ev) => {
     drag = false;
-    // canvas.style.cursor = "pointer";
-    // BODY.style.cursor = "auto";
     off(WIN, "mousemove", on_drag);
     off(WIN, "mouseup", on_drag_end);
     on_drag(ev);
@@ -205,8 +206,6 @@ const pagemap = (canvas, options) => {
       drag_ry = 0.5;
     }
 
-    // canvas.style.cursor = "crosshair";
-    // BODY.style.cursor = "crosshair";
     on(WIN, "mousemove", on_drag);
     on(WIN, "mouseup", on_drag_end);
     on_drag(ev);
