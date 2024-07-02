@@ -336,10 +336,9 @@
       }
       document.getElementById("saveStatus").textContent = "未上传";
       pageInstance.redraw();
-      // console.log(addCardPos);
     }
 
-    function saveTrelloListInfo() {
+    function saveTrelloListInfo(index) {
       let listElements = document.querySelectorAll(".list");
       let listInfo = [];
       listElements.forEach((listElement, listIndex) => {
@@ -365,6 +364,7 @@
         pageInstance.redraw();
         document.getElementById("saveStatus").textContent = "未上传";
       }
+      console.log(index);
     }
 
     let editTarget = null;
@@ -437,7 +437,7 @@
         group: "cards",
         animation: 150,
         onEnd: function (evt) {
-          saveTrelloListInfo();
+          saveTrelloListInfo(0);
         },
       });
 
@@ -460,7 +460,7 @@
         } else {
           cardList.insertBefore(cardElement, cardList.firstChild);
         }
-        saveTrelloListInfo();
+        saveTrelloListInfo(1);
       });
       if (addCardPos === "bottom") {
         listElement.appendChild(addCardButton);
@@ -494,7 +494,7 @@
         animation: 150,
         draggable: ".list",
         onEnd: function (evt) {
-          saveTrelloListInfo();
+          saveTrelloListInfo(2);
         },
       });
 
@@ -510,7 +510,7 @@
         // renderBoard();
         const listElement = createListElement(newList, data.length - 1);
         board.insertBefore(listElement, listPlaceholder);
-        saveTrelloListInfo();
+        saveTrelloListInfo(3);
       });
 
       listPlaceholder.appendChild(addListButton);
@@ -553,7 +553,7 @@
           editTarget.querySelector(".card-content").textContent =
             document.getElementById("editContent").value;
         }
-        saveTrelloListInfo();
+        saveTrelloListInfo(4);
         document.getElementById("editModal").style.display = "none";
       }
     });
@@ -566,7 +566,7 @@
         } else if (editTarget.className.includes("card")) {
           editTarget.remove();
         }
-        saveTrelloListInfo();
+        saveTrelloListInfo(5);
         document.getElementById("editModal").style.display = "none";
       }
     });
