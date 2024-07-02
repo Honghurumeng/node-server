@@ -454,7 +454,6 @@
           list.cards.length - 1,
           listIndex
         );
-        // cardList.appendChild(cardElement);
         if (addCardPos === "bottom") {
           cardList.appendChild(cardElement);
         } else {
@@ -462,7 +461,12 @@
         }
         saveTrelloListInfo();
       });
-      listElement.appendChild(addCardButton);
+      if (addCardPos === "bottom") {
+        listElement.appendChild(addCardButton);
+      } else {
+        addCardButton.style.marginBottom = "10px";
+        listElement.insertBefore(addCardButton, cardList);
+      }
 
       return listElement;
     }
