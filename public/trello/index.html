@@ -143,6 +143,14 @@
       z-index: 100;
     }
 
+    a:link {
+      color: #000000;
+    }
+
+    a:visited {
+      color: #000000;
+    }
+
     @media only screen and (max-width: 600px) {
       body {
         padding: 10px;
@@ -213,6 +221,8 @@
         style="width: 100%; margin-bottom: 10px;font-family: Arial, Helvetica, sans-serif;" autocomplete="off" />
       <label for="editContent">内容:</label>
       <button id="clearContent">清除</button>
+      <input type="checkbox" name="link" id="link">
+      <label for="link">链接</label>
       <textarea id="editContent" rows="8"
         style="width: 100%; margin-top: 10px; margin-bottom: 5px;font-family: Arial, Helvetica, sans-serif;"></textarea>
 
@@ -353,6 +363,7 @@
             title: cardElement.querySelector(".card-title").textContent,
             content: cardElement.querySelector(".card-content").textContent,
             color: rgbToHex(cardElement.style.backgroundColor),
+            link: cardElement.querySelector("a") ? true : false,
           };
           list.cards.push(card);
         });
@@ -383,7 +394,15 @@
 
       const cardContent = document.createElement("pre");
       cardContent.className = "card-content";
-      cardContent.textContent = card.content;
+      if (card.link) {
+        const link = document.createElement("a");
+        link.href = card.content;
+        link.target = "_blank";
+        link.textContent = card.content;
+        cardContent.appendChild(link);
+      } else {
+        cardContent.textContent = card.content;
+      }
       // cardContent.innerHTML = card.content.replace(/\n/g, "</br>");
       cardElement.appendChild(cardContent);
 
@@ -398,6 +417,7 @@
           "--editing-color",
           cardElement.style.backgroundColor
         );
+        document.getElementById("link").checked = cardContent.querySelector("a") ? true : false;
         document.getElementById("editModal").style.display = "block";
       });
 
@@ -449,6 +469,7 @@
           title: "新任务",
           content: "新内容",
           color: "#FFECB3",
+          link: false,
         };
         const cardElement = createCardElement(
           newCard,
@@ -552,6 +573,17 @@
             document.getElementById("editTitle").value;
           editTarget.querySelector(".card-content").textContent =
             document.getElementById("editContent").value;
+          if (document.getElementById("link").checked) {
+            var link = document.createElement("a");
+            link.href = document.getElementById("editContent").value;
+            link.textContent = document.getElementById("editContent").value;
+            link.target = "_blank"; // 在新窗口中打开链接
+            editTarget.querySelector(".card-content").innerHTML = "";
+            editTarget.querySelector(".card-content").appendChild(link);
+          } else {
+            editTarget.querySelector(".card-content").innerHTML = "";
+            editTarget.querySelector(".card-content").textContent = document.getElementById("editContent").value;
+          }
         }
         saveTrelloListInfo(4);
         document.getElementById("editModal").style.display = "none";
