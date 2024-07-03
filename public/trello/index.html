@@ -12,6 +12,10 @@
       --editing-color: #ffcccc;
     }
 
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -702,7 +706,7 @@
           renderBoard();
           scrollToPagePos();
           if (addCardPos === "top") {
-            addCardPosSwitch();
+            document.getElementById("addCardPosSwitch").textContent = "底部添加";
           }
           pageInstance = pagemap(document.querySelector("#map"), {
             viewport: null,
