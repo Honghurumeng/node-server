@@ -427,6 +427,7 @@
 
       cardElement.addEventListener("click", (e) => {
         // console.log(e.target, cardElement);
+        if(e.target.tagName === "A") return;
         editTarget = cardElement;
         document.getElementById("editTitle").value = cardTitle.textContent;
         document.getElementById("editContent").value =
