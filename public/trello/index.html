@@ -124,6 +124,15 @@
       max-width: 500px;
     }
 
+    .modal button {
+      background-color: var(--button-color);
+      border: none;
+      color: white;
+      padding: 5px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+
     .close {
       color: #aaa;
       float: right;
@@ -223,13 +232,15 @@
       <button id="clearTitle">清除</button>
       <input type="text" id="editTitle"
         style="width: 100%; margin-bottom: 10px;font-family: Arial, Helvetica, sans-serif;" autocomplete="off" />
-      <label for="editContent">内容:</label>
-      <button id="clearContent">清除</button>
-      <input type="checkbox" name="link" id="link">
-      <label for="link">链接</label>
-      <textarea id="editContent" rows="8"
-        style="width: 100%; margin-top: 10px; margin-bottom: 5px;font-family: Arial, Helvetica, sans-serif;"></textarea>
-
+      <div id="content">
+        <label for="editContent">内容:</label>
+        <button id="clearContent">清除</button>
+        <input type="checkbox" name="link" id="link">
+        <label for="link">链接</label>
+        <input type="range" value="8" min="8" max="30" id="contentRowChange">
+        <textarea id="editContent" rows="8"
+          style="width: 100%; margin-top: 10px; margin-bottom: 5px;font-family: Arial, Helvetica, sans-serif;"></textarea>
+      </div>
       <div style="display: flex;margin-bottom: 10px;display: flex;">
         <label for="card-background-color" style="margin-right: 5px;">颜色:</label>
         <input type="color" id="card-background-color" value="#FFFFFF" />
@@ -270,7 +281,7 @@
       </div>
 
       <button id="saveEdit">保存</button>
-      <button id="delEdit">删除</button>
+      <button id="delEdit" style="margin-left: 20px;">删除</button>
     </div>
 
   </div>
@@ -382,6 +393,10 @@
       console.log(index);
     }
 
+    document.getElementById("contentRowChange").addEventListener("input", (e) => {
+      document.getElementById("editContent").rows = e.target.value;
+    });
+
     let editTarget = null;
 
     function createCardElement(card, cardIndex, listIndex) {
@@ -422,6 +437,7 @@
           cardElement.style.backgroundColor
         );
         document.getElementById("link").checked = cardContent.querySelector("a") ? true : false;
+        document.getElementById("content").style.display = "block";
         document.getElementById("editModal").style.display = "block";
       });
 
@@ -441,12 +457,13 @@
         // console.log(e.target);
         editTarget = listHeader;
         document.getElementById("editTitle").value = listHeader.textContent;
-        document.getElementById("editContent").value = "编辑无用";
+        // document.getElementById("editContent").value = "编辑无用";
         document.getElementById("card-background-color").value = rgbToHex(listElement.style.backgroundColor);
         document.documentElement.style.setProperty(
           "--editing-color",
           listElement.style.backgroundColor
         );
+        document.getElementById("content").style.display = "none";
         document.getElementById("editModal").style.display = "block";
       });
       listElement.appendChild(listHeader);
@@ -718,10 +735,10 @@
               // ".card": "default",
             },
             back: "rgba(0,0,0,0.1)",
-            view: "rgba(0,0,0,0.1)",
+            view: "rgba(0,0,0,0.2)",
             // drag: "rgba(0,0,0,0.4)",
             // view: "default",
-            drag: "rgba(0,0,0,0.1)",
+            drag: "rgba(0,0,0,0.2)",
             interval: null,
           });
         })
